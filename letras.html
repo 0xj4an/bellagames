@@ -105,31 +105,50 @@ function sndCeleb(){[523,659,784,1047,784,1047,1319].forEach((n,i)=>setTimeout((
 
 // === SPEECH (for kids who can't read) ===
 let cachedVoice=null;
+function scoreVoice(v){
+  let s=0;
+  const name=v.name.toLowerCase(),lang=v.lang||'';
+  // strongly prefer premium/enhanced/neural voices (much more natural)
+  if(/premium|enhanced|neural|natural|siri/i.test(name)||/ttsbundle/i.test(v.voiceURI||''))s+=100;
+  // prefer Latin American over Spain
+  if(/es[-_](MX|US|419|AR|CO|CL|PE|VE)/i.test(lang))s+=50;
+  else if(/es[-_]ES/i.test(lang))s+=5;
+  else if(lang.startsWith('es'))s+=20;
+  else return -1; // not Spanish at all
+  // prefer female for child-friendly
+  if(/female|paulina|penelope|elena|karla|angelica|jimena|monica|sofia/i.test(name))s+=30;
+  // Google voices on Android are decent
+  if(/google/i.test(name))s+=15;
+  // prefer non-compact (higher quality)
+  if(!/compact/i.test(v.voiceURI||''))s+=10;
+  return s;
+}
 function pickVoice(){
   if(cachedVoice)return cachedVoice;
   const voices=window.speechSynthesis.getVoices();
   if(!voices.length)return null;
-  // prefer Latin American Spanish voices (MX, US, 419, AR, CO, CL...)
-  const latam=voices.filter(v=>/^es[-_](MX|US|419|AR|CO|CL|PE|VE)/i.test(v.lang));
-  // among latam, prefer female voices for child-friendly tone
-  const female=latam.filter(v=>/female|paulina|penelope|elena|karla|iolanda/i.test(v.name));
-  if(female.length){cachedVoice=female[0];return cachedVoice}
-  if(latam.length){cachedVoice=latam[0];return cachedVoice}
-  // fallback: any es voice that is NOT es-ES
-  const anyLatam=voices.find(v=>v.lang.startsWith('es')&&!/es[-_]ES/i.test(v.lang));
-  if(anyLatam){cachedVoice=anyLatam;return cachedVoice}
-  // last resort: any Spanish voice
-  const any=voices.find(v=>v.lang.startsWith('es'));
-  if(any){cachedVoice=any;return cachedVoice}
-  return null;
+  // score all voices and pick the best Spanish one
+  let best=null,bestScore=-1;
+  for(const v of voices){
+    const s=scoreVoice(v);
+    if(s>bestScore){bestScore=s;best=v}
+  }
+  if(best)cachedVoice=best;
+  return cachedVoice;
 }
 function speak(text){
   if(!('speechSynthesis' in window))return;
   window.speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
-  u.lang='es-MX';u.rate=.8;u.pitch=1.4;
+  u.lang='es-MX';u.rate=.85;u.pitch=1.2;
   const v=pickVoice();
-  if(v)u.voice=v;
+  if(v){
+    u.voice=v;
+    // premium voices sound better with less pitch shift
+    if(/premium|enhanced|neural|siri/i.test(v.name)||/ttsbundle/i.test(v.voiceURI||'')){
+      u.pitch=1.05;u.rate=.9;
+    }
+  }
   window.speechSynthesis.speak(u);
 }
 // preload voices (some browsers load async)
