@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Hipodromo - Juego Bella</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@400;600;700&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Fredoka',sans-serif;overflow:hidden;background:#87CEEB;user-select:none;touch-action:none;-webkit-touch-callout:none}
+  .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s;z-index:10}
+  .screen.hidden{opacity:0;pointer-events:none}
+
+  #title-screen{background:linear-gradient(180deg,#87CEEB 0%,#B5E8F7 40%,#C8946E 40%,#A0714E 100%)}
+  .title-wrap{text-align:center;animation:bounce 2s ease-in-out infinite}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  .welcome{font-family:'Bubblegum Sans',cursive;font-size:clamp(1.2rem,3.5vw,1.8rem);color:#FFD54F;text-shadow:2px 2px 0 #A0714E;margin-bottom:6px;animation:pulse 2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+  .title{font-family:'Bubblegum Sans',cursive;font-size:clamp(2.5rem,7vw,4.5rem);color:#fff;text-shadow:4px 4px 0 #FF6B9D,8px 8px 0 #FF8A65;line-height:1.2}
+  .play-btn{margin-top:24px;padding:14px 44px;font-family:'Bubblegum Sans',cursive;font-size:clamp(1.3rem,4vw,2rem);color:#fff;background:linear-gradient(135deg,#FF6B9D,#FF8A65);border:4px solid #fff;border-radius:50px;cursor:pointer;box-shadow:0 6px 0 #EF5350;transition:all .15s}
+  .play-btn:hover{transform:translateY(-2px)}.play-btn:active{transform:translateY(3px);box-shadow:0 3px 0 #EF5350}
+  .back-btn{position:fixed;top:14px;left:14px;z-index:40;padding:8px 18px;font-family:'Bubblegum Sans',cursive;font-size:1.1rem;color:#fff;background:rgba(0,0,0,.3);border:3px solid rgba(255,255,255,.5);border-radius:25px;cursor:pointer;text-decoration:none;transition:all .15s;backdrop-filter:blur(4px)}
+  .back-btn:hover{background:rgba(0,0,0,.5)}
+
+  .deco{position:absolute;font-size:3.5rem;animation:floaty 3s ease-in-out infinite;pointer-events:none}
+  .deco:nth-child(1){top:10%;left:5%;animation-delay:0s}
+  .deco:nth-child(2){top:8%;right:6%;animation-delay:.6s}
+  .deco:nth-child(3){bottom:32%;left:8%;animation-delay:1.1s}
+  .deco:nth-child(4){bottom:28%;right:5%;animation-delay:.3s}
+  @keyframes floaty{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-15px) rotate(3deg)}}
+
+  #select-screen{background:linear-gradient(180deg,#E8D5B7,#F0C89A,#D4A574)}
+  .select-title{font-family:'Bubblegum Sans',cursive;font-size:clamp(1.8rem,5vw,3rem);color:#fff;text-shadow:3px 3px 0 #A0714E;margin-bottom:24px}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;max-width:650px;width:92%}
+  @media(max-width:600px){.grid{grid-template-columns:repeat(2,1fr);gap:10px}.card .preview{font-size:3.5rem}.card{padding:14px 8px}}
+  .card{position:relative;background:#fff;border-radius:22px;padding:18px 10px;text-align:center;cursor:pointer;border:4px solid transparent;box-shadow:0 6px 20px rgba(0,0,0,.12);transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+  .card:hover{transform:translateY(-8px) scale(1.05);border-color:#FFD54F}
+  .card .preview{font-size:4rem;line-height:1}
+  .card .name{font-family:'Bubblegum Sans',cursive;font-size:1.1rem;margin-top:6px;color:#555}
+  .card .num{position:absolute;top:-8px;left:-8px;width:28px;height:28px;background:#FF6B9D;color:#fff;border-radius:50%;font-family:'Bubblegum Sans',cursive;font-size:.95rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  .card .color-dot{width:14px;height:14px;border-radius:50%;margin:4px auto 0;border:2px solid rgba(0,0,0,.1)}
+
+  #race-screen{z-index:5;justify-content:flex-start}
+  canvas#game{position:fixed;inset:0;width:100%;height:100%;display:block}
+
+  .cd-wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:25;pointer-events:none}
+  .cd-num{font-family:'Bubblegum Sans',cursive;font-size:10rem;color:#fff;text-shadow:5px 5px 0 #FF6B9D,10px 10px 0 #FF8A65;animation:pop .7s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes pop{0%{transform:scale(2.5);opacity:0}60%{transform:scale(1.05);opacity:1}100%{transform:scale(1)}}
+
+  #celeb-screen{background:rgba(0,0,0,.3);backdrop-filter:blur(4px);z-index:30}
+  .celeb{text-align:center;animation:cpop .5s cubic-bezier(.34,1.56,.64,1)}
+  @keyframes cpop{0%{transform:scale(0);opacity:0}100%{transform:scale(1);opacity:1}}
+  .celeb-title{font-family:'Bubblegum Sans',cursive;font-size:clamp(2.5rem,7vw,5rem);color:#FFD54F;text-shadow:4px 4px 0 #FF8A65,8px 8px 0 #EF5350;animation:shake .4s ease-in-out infinite}
+  @keyframes shake{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+  .celeb-emoji{font-size:6rem;margin:12px 0;animation:cjump .5s ease-in-out infinite}
+  @keyframes cjump{0%,100%{transform:translateY(0)}50%{transform:translateY(-25px)}}
+  .celeb-stars{font-size:2.5rem;margin:6px 0}
+  .celeb-pos{font-family:'Bubblegum Sans',cursive;font-size:1.5rem;color:#fff;margin:8px 0}
+  .again-btn{margin-top:16px;padding:12px 36px;font-family:'Bubblegum Sans',cursive;font-size:1.4rem;color:#fff;background:linear-gradient(135deg,#66BB6A,#4CAF50);border:4px solid #fff;border-radius:35px;cursor:pointer;box-shadow:0 5px 0 #388E3C;transition:all .15s}
+  .again-btn:hover{transform:translateY(-2px)}.again-btn:active{transform:translateY(3px);box-shadow:0 2px 0 #388E3C}
+  .confetti{position:fixed;z-index:25;animation:fall linear forwards}
+  @keyframes fall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+</style>
+</head>
+<body>
+<a href="juegosbella.html" class="back-btn">Volver</a>
+
+<div id="title-screen" class="screen">
+  <span class="deco">🏇</span><span class="deco">🐴</span><span class="deco">🏇</span><span class="deco">🐴</span>
+  <div class="title-wrap">
+    <div class="welcome">Bienvenida Bella!</div>
+    <div class="title">Hipodromo</div>
+    <button class="play-btn" id="playBtn">CORRER</button>
+  </div>
+</div>
+
+<div id="select-screen" class="screen hidden">
+  <div class="select-title">Elige tu caballo</div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div id="race-screen" class="screen hidden">
+  <canvas id="game"></canvas>
+  <div class="cd-wrap" id="cdWrap" style="display:none"><div class="cd-num" id="cdNum">3</div></div>
+</div>
+
+<div id="celeb-screen" class="screen hidden">
+  <div class="celeb">
+    <div class="celeb-title" id="cTitle">BRAVO</div>
+    <div class="celeb-emoji" id="cEmoji">🏇</div>
+    <div class="celeb-stars">⭐🌟⭐🌟⭐</div>
+    <div class="celeb-pos" id="cPos"></div>
+    <button class="again-btn" id="againBtn">Otra vez</button>
+  </div>
+</div>
+
+<script>
+// === AUDIO ===
+const AC=window.AudioContext||window.webkitAudioContext;let ac;
+function initAudio(){if(!ac)ac=new AC();if(ac.state==='suspended')ac.resume()}
+function tone(f,d,t='sine',v=.1){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.type=t;o.frequency.value=f;g.gain.value=v;g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}
+function sndGallop(){tone(200,.04,'sine',.12);setTimeout(()=>tone(160,.05,'sine',.1),30)}
+function sndClick(){tone(500,.04,'sine',.08)}
+function sndBeep(){tone(440,.12,'sine',.12)}
+function sndGo(){tone(880,.25,'sine',.14);setTimeout(()=>tone(1100,.25,'sine',.1),80)}
+function sndWin(){[523,659,784,1047,784,1047,1319].forEach((n,i)=>setTimeout(()=>tone(n,.2,'sine',.08),i*130))}
+function sndBell(){tone(1200,.3,'sine',.1);setTimeout(()=>tone(1500,.3,'sine',.08),150)}
+
+// === BACKGROUND MUSIC (children's march) ===
+let musicPlaying=false,musicTimer=null;
+const MELODY=[
+  392,392,523,523,587,587,523,0,
+  494,494,440,440,392,392,392,0,
+  392,392,523,523,587,587,523,0,
+  494,440,392,440,523,494,392,0,
+];
+const BASS=[
+  196,0,262,0,294,0,262,0,
+  247,0,220,0,196,0,196,0,
+  196,0,262,0,294,0,262,0,
+  247,220,196,220,262,247,196,0,
+];
+let musicStep=0;
+function startMusic(){if(musicPlaying)return;musicPlaying=true;musicStep=0;playMusicStep()}
+function playMusicStep(){
+  if(!musicPlaying||!ac)return;
+  const i=musicStep%MELODY.length;
+  const note=MELODY[i],bass=BASS[i];
+  if(note>0)tone(note,.22,'sine',.03);
+  if(bass>0)tone(bass,.28,'sine',.018);
+  musicStep++;musicTimer=setTimeout(playMusicStep,240);
+}
+function stopMusic(){musicPlaying=false;if(musicTimer){clearTimeout(musicTimer);musicTimer=null}}
+
+// === DATA ===
+const HORSES=[
+  {name:'Relampago',emoji:'🏇',color:'#E53935'},
+  {name:'Estrella',emoji:'🏇',color:'#FFB300'},
+  {name:'Tornado',emoji:'🏇',color:'#1E88E5'},
+  {name:'Luna',emoji:'🏇',color:'#AB47BC'},
+  {name:'Rayo',emoji:'🏇',color:'#43A047'},
+  {name:'Princesa',emoji:'🏇',color:'#F06292'},
+  {name:'Trueno',emoji:'🏇',color:'#FF7043'},
+  {name:'Nube',emoji:'🏇',color:'#78909C'},
+];
+const MSGS=['BRAVO','GENIAL','SUPER','INCREIBLE','FANTASTICO','CAMPEON'];
+const LANES=6;
+const FINISH=4000;
+
+// === STATE ===
+let sel=null,running=false,finished=false;
+let cv,cx,camX=0,raceT=0,lastT=0;
+let racers=[],effects=[];
+let tapCount=0,tapDecay=0,lastTapT=0;
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));document.getElementById(id).classList.remove('hidden')}
+function goPlay(){initAudio();sndClick();show('select-screen');buildGrid()}
+document.getElementById('playBtn').onclick=goPlay;
+window._titleKey=e=>{if(e.key==='Enter'){e.preventDefault();goPlay();window.removeEventListener('keydown',window._titleKey)}};
+window.addEventListener('keydown',window._titleKey);
+
+let gridFocus=0;
+function highlightCard(i){
+  const cards=document.getElementById('grid').children;
+  if(!cards.length)return;
+  gridFocus=((i%cards.length)+cards.length)%cards.length;
+  Array.from(cards).forEach((c,j)=>c.style.borderColor=j===gridFocus?'#FFD54F':'transparent');
+}
+
+function buildGrid(){
+  const g=document.getElementById('grid');g.innerHTML='';gridFocus=0;
+  HORSES.forEach((h,i)=>{
+    const c=document.createElement('div');c.className='card';
+    c.innerHTML=`<div class="num">${i+1}</div><div class="preview">${h.emoji}</div><div class="name">${h.name}</div><div class="color-dot" style="background:${h.color}"></div>`;
+    c.onclick=()=>{sndClick();sel=h;removeSelectKeys();show('race-screen');countdown()};
+    g.appendChild(c);
+  });
+  highlightCard(0);
+  window._selectKey=e=>{
+    const n=parseInt(e.key);
+    if(n>=1&&n<=HORSES.length){sndClick();sel=HORSES[n-1];removeSelectKeys();show('race-screen');countdown();return}
+    if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();highlightCard(gridFocus+1)}
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();highlightCard(gridFocus-1)}
+    if(e.key==='Enter'){e.preventDefault();sndClick();sel=HORSES[gridFocus];removeSelectKeys();show('race-screen');countdown()}
+  };
+  window.addEventListener('keydown',window._selectKey);
+}
+
+function countdown(){
+  const w=document.getElementById('cdWrap'),n=document.getElementById('cdNum');
+  w.style.display='flex';let c=3;
+  n.textContent=c;n.style.animation='none';void n.offsetWidth;n.style.animation='pop .7s cubic-bezier(.34,1.56,.64,1)';sndBeep();
+  const iv=setInterval(()=>{c--;
+    if(c>0){n.textContent=c;n.style.animation='none';void n.offsetWidth;n.style.animation='pop .7s cubic-bezier(.34,1.56,.64,1)';sndBeep()}
+    else if(c===0){n.textContent='YA!';n.style.animation='none';void n.offsetWidth;n.style.animation='pop .7s cubic-bezier(.34,1.56,.64,1)';sndGo();sndBell()}
+    else{clearInterval(iv);w.style.display='none';initRace()}
+  },800);
+}
+
+function setupCv(){cv=document.getElementById('game');cx=cv.getContext('2d');resize();window.addEventListener('resize',resize)}
+function resize(){const d=devicePixelRatio;cv.width=innerWidth*d;cv.height=innerHeight*d;cx.setTransform(d,0,0,d,0,0)}
+
+// === INPUT ===
+function onKey(e){if((e.code==='Space'||e.key===' ')&&running&&!finished){e.preventDefault();doTap()}}
+function onClick(){if(running&&!finished)doTap()}
+function onTouch(e){if(running&&!finished){e.preventDefault();doTap()}}
+
+function doTap(){
+  const now=Date.now();
+  if(now-lastTapT<80)return; // debounce
+  lastTapT=now;
+  tapCount++;
+  tapDecay=1;
+  sndGallop();
+  // tap burst particles
+  const me=racers.find(r=>r.me);
+  if(me){
+    for(let i=0;i<3;i++) effects.push({
+      type:'dust',x:me.x-20,y:me.laneY+18,
+      vx:-1-Math.random()*3,vy:(Math.random()-.5)*2,
+      t:0,dur:400+Math.random()*200,sz:4+Math.random()*5
+    });
+  }
+}
+
+function initRace(){
+  setupCv();running=true;finished=false;camX=0;raceT=0;lastT=0;
+  tapCount=0;tapDecay=0;lastTapT=0;
+  effects=[];
+
+  const laneH=innerHeight/LANES;
+  // pick 5 rivals
+  const rivals=HORSES.filter(h=>h.name!==sel.name).sort(()=>Math.random()-.5).slice(0,LANES-1);
+  const all=[...rivals];
+  const playerLane=Math.floor(Math.random()*LANES);
+  all.splice(playerLane,0,sel);
+
+  racers=all.map((h,i)=>({
+    h,x:60,lane:i,
+    laneY:laneH*i+laneH*.5+6,
+    baseSpd:1.4+Math.random()*.4,
+    spd:0,tgt:1.4+Math.random()*.3,
+    me:h.name===sel.name,
+    bob:Math.random()*Math.PI*2,
+    fin:false,finX:0,
+    // AI burst
+    nextBurst:2000+Math.random()*3000,
+    burstT:0,
+  }));
+
+  const me=racers.find(r=>r.me);
+  me.baseSpd=1.2; // slower base, player needs to tap
+  me.tgt=0.5;
+
+  window.addEventListener('keydown',onKey);
+  cv.addEventListener('click',onClick);
+  cv.addEventListener('touchstart',onTouch,{passive:false});
+  startMusic();
+  requestAnimationFrame(loop);
+}
+
+function cleanup(){
+  window.removeEventListener('keydown',onKey);
+  cv.removeEventListener('click',onClick);
+  cv.removeEventListener('touchstart',onTouch);
+  stopMusic();
+}
+
+function loop(ts){
+  if(!running)return;
+  const dt=lastT?Math.min(ts-lastT,33):16;lastT=ts;raceT+=dt;
+  update(dt);draw();
+  if(!finished)requestAnimationFrame(loop);
+}
+
+function update(dt){
+  const me=racers.find(r=>r.me);
+
+  // tap decay
+  tapDecay-=dt*.0008;
+  if(tapDecay<0)tapDecay=0;
+
+  // player speed from tapping
+  const tapBoost=Math.min(tapDecay*2.5,3);
+  me.tgt=0.5+tapBoost;
+
+  racers.forEach(r=>{
+    if(r.fin)return;
+
+    // AI
+    if(!r.me){
+      r.nextBurst-=dt;
+      if(r.nextBurst<=0){
+        r.burstT=800+Math.random()*1200;
+        r.nextBurst=2000+Math.random()*4000;
+      }
+      if(r.burstT>0){
+        r.burstT-=dt;
+        r.tgt=r.baseSpd+1+Math.random()*.8;
+      } else {
+        r.tgt=r.baseSpd+Math.sin(raceT*.001+r.lane)*.3;
+      }
+      // catch up / slow down relative to pack
+      const avg=racers.reduce((s,rr)=>s+rr.x,0)/racers.length;
+      if(r.x<avg-100)r.tgt+=.3;
+      if(r.x>avg+150)r.tgt-=.2;
+
+      // dust particles for AI
+      if(r.spd>1.5&&Math.random()<.1){
+        effects.push({type:'dust',x:r.x-15,y:r.laneY+16,vx:-1-Math.random()*2,vy:(Math.random()-.5)*1.5,t:0,dur:350,sz:3+Math.random()*4});
+      }
+    }
+
+    r.spd+=(r.tgt-r.spd)*.04;
+    r.x+=r.spd*(dt/16);
+    r.bob+=dt*.01*r.spd;
+
+    if(r.x>=FINISH&&!r.fin){
+      r.fin=true;
+      r.finX=r.x;
+    }
+  });
+
+  // effects
+  effects.forEach(e=>e.t+=dt);
+  effects=effects.filter(e=>e.t<e.dur);
+
+  // camera
+  const tc=me.x-innerWidth*.3;
+  camX+=(tc-camX)*.06;
+  if(camX<0)camX=0;
+
+  // end check - all finish or player finishes
+  if(!finished&&me.fin){
+    finished=true;running=false;cleanup();
+    setTimeout(showCeleb,600);
+  }
+}
+
+function draw(){
+  const w=innerWidth,h=innerHeight,laneH=h/LANES;
+
+  cx.clearRect(0,0,w,h);
+
+  // sky
+  const sk=cx.createLinearGradient(0,0,0,h*.15);
+  sk.addColorStop(0,'#87CEEB');sk.addColorStop(1,'#B5E8F7');
+  cx.fillStyle=sk;cx.fillRect(0,0,w,h);
+
+  // grandstand background (top area)
+  cx.fillStyle='#8D6E63';cx.fillRect(0,h*.04,w,h*.1);
+  cx.fillStyle='#A1887F';cx.fillRect(0,h*.04,w,h*.03);
+  // crowd
+  cx.font='16px serif';
+  for(let i=0;i<Math.ceil(w/28);i++){
+    const faces=['👤','👧','👦','👩','👨','🧒'];
+    const cx2=((i*28-camX*.05)%(w+50)+w+50)%(w+50)-25;
+    cx.fillText(faces[i%faces.length],cx2,h*.1);
+  }
+
+  // track surface
+  cx.fillStyle='#C8946E';cx.fillRect(0,h*.15,w,h*.85);
+
+  // lane lines and track
+  for(let i=0;i<LANES;i++){
+    const ly=laneH*i;
+    // lane stripe
+    cx.strokeStyle='rgba(255,255,255,.2)';cx.lineWidth=2;
+    cx.setLineDash([16,12]);cx.lineDashOffset=-camX*.5;
+    cx.beginPath();cx.moveTo(0,ly);cx.lineTo(w,ly);cx.stroke();
+    cx.setLineDash([]);
+
+    // lane number
+    const numX=((20-camX*.3)%(w+100)+w+100)%(w+100)-50;
+    cx.fillStyle='rgba(255,255,255,.12)';cx.font='bold 40px Fredoka';cx.textAlign='center';
+    cx.fillText(i+1,numX,ly+laneH*.6);cx.textAlign='start';
+  }
+
+  // rail lines (top and bottom of track)
+  cx.fillStyle='#FFF';cx.fillRect(0,laneH*0-2,w,4);
+  cx.fillRect(0,laneH*LANES-2,w,4);
+
+  // start line
+  const sx=-camX+50;
+  if(sx>-20&&sx<w+20){
+    cx.fillStyle='rgba(255,255,255,.4)';cx.fillRect(sx,0,4,h);
+    cx.fillStyle='rgba(255,255,255,.6)';cx.font='bold 14px Fredoka';cx.textAlign='center';
+    cx.fillText('SALIDA',sx,h*.13);cx.textAlign='start';
+  }
+
+  // finish line
+  const fx=FINISH-camX;
+  if(fx>-60&&fx<w+60){
+    const sq=14;
+    for(let r=0;r<h/sq;r++)for(let c=0;c<3;c++){
+      cx.fillStyle=(r+c)%2?'#FFF':'#333';
+      cx.fillRect(fx-21+c*sq,r*sq,sq,sq);
+    }
+    cx.fillStyle='#FF6B9D';rr(cx,fx-40,4,80,24,8);cx.fill();
+    cx.fillStyle='#FFF';cx.font='bold 13px Fredoka';cx.textAlign='center';
+    cx.fillText('META',fx,22);cx.textAlign='start';
+  }
+
+  // racers
+  [...racers].sort((a,b)=>a.lane-b.lane).forEach(r=>{
+    const rx=r.x-camX;if(rx<-80||rx>w+80)return;
+    const bob=Math.sin(r.bob)*4;
+    const drawY=r.laneY+bob;
+
+    cx.save();cx.translate(rx,drawY);
+
+    // shadow
+    cx.beginPath();cx.ellipse(0,20,22,6,0,0,Math.PI*2);
+    cx.fillStyle='rgba(0,0,0,.12)';cx.fill();
+
+    // colored background circle for player
+    if(r.me){
+      cx.beginPath();cx.arc(0,0,30,0,Math.PI*2);
+      cx.fillStyle=r.h.color+'30';cx.fill();
+      cx.strokeStyle=r.h.color;cx.lineWidth=3;cx.stroke();
+    }
+
+    // horse emoji
+    const sz=r.me?52:40;
+    cx.save();cx.scale(-1,1); // face right
+    cx.font=sz+'px serif';cx.textAlign='center';cx.textBaseline='middle';
+    cx.fillText(r.h.emoji,0,0);
+    cx.restore();
+
+    // player name tag
+    if(r.me){
+      cx.fillStyle='rgba(255,255,255,.9)';rr(cx,-28,-42,56,18,9);cx.fill();
+      cx.fillStyle=r.h.color;cx.font='bold 11px Fredoka';cx.textAlign='center';
+      cx.fillText(r.h.name,0,-29);cx.textAlign='start';
+      // arrow
+      cx.fillStyle='#FFD54F';cx.beginPath();cx.moveTo(-6,-44);cx.lineTo(6,-44);cx.lineTo(0,-52);cx.fill();
+    } else {
+      // rival color dot
+      cx.beginPath();cx.arc(0,-28,8,0,Math.PI*2);
+      cx.fillStyle=r.h.color;cx.fill();
+      cx.strokeStyle='#fff';cx.lineWidth=2;cx.stroke();
+    }
+
+    // gallop streaks when fast
+    if(r.spd>2){
+      cx.globalAlpha=Math.min((r.spd-2)/2,.5);
+      cx.strokeStyle=r.h.color;cx.lineWidth=2;
+      for(let i=0;i<3;i++){
+        const lx=-30-i*12,ly2=-8+i*10;
+        cx.beginPath();cx.moveTo(lx,ly2);cx.lineTo(lx-15-i*5,ly2);cx.stroke();
+      }
+      cx.globalAlpha=1;
+    }
+
+    cx.restore();
+  });
+
+  // dust effects
+  effects.forEach(e=>{
+    if(e.type==='dust'){
+      const prog=1-e.t/e.dur;
+      e.x+=e.vx;e.y+=e.vy;
+      const ex=e.x-camX;
+      cx.globalAlpha=prog*.4;cx.fillStyle='#C8946E';
+      cx.beginPath();cx.arc(ex,e.y,e.sz*prog,0,Math.PI*2);cx.fill();
+      cx.globalAlpha=1;
+    }
+  });
+
+  // === HUD ===
+  const me=racers.find(r=>r.me);
+
+  // position
+  const sorted=[...racers].sort((a,b)=>b.x-a.x);
+  const pos=sorted.findIndex(r=>r.me)+1;
+  cx.fillStyle='rgba(255,255,255,.9)';rr(cx,w/2-55,8,110,30,12);cx.fill();
+  cx.strokeStyle='#FFD54F';cx.lineWidth=2;rr(cx,w/2-55,8,110,30,12);cx.stroke();
+  cx.fillStyle='#555';cx.font='bold 16px Fredoka';cx.textAlign='center';
+  cx.fillText('Posicion: '+pos,w/2,29);cx.textAlign='start';
+
+  // tap meter
+  const meterW=120,meterH=14,meterX=w-140,meterY=12;
+  cx.fillStyle='rgba(0,0,0,.2)';rr(cx,meterX,meterY,meterW,meterH,7);cx.fill();
+  const tapFill=Math.min(tapDecay,1);
+  if(tapFill>0){
+    const tg=cx.createLinearGradient(meterX,0,meterX+meterW*tapFill,0);
+    tg.addColorStop(0,'#66BB6A');tg.addColorStop(1,'#FFD54F');
+    cx.fillStyle=tg;rr(cx,meterX,meterY,Math.max(meterW*tapFill,8),meterH,7);cx.fill();
+  }
+  cx.fillStyle='#fff';cx.font='bold 11px Fredoka';cx.textAlign='center';
+  cx.fillText('VELOCIDAD',meterX+meterW/2,meterY+11);cx.textAlign='start';
+
+  // progress bar
+  const pw=w-40,ph=8,py=h-22;
+  cx.fillStyle='rgba(255,255,255,.25)';rr(cx,20,py,pw,ph,4);cx.fill();
+  const prog=Math.min(me.x/FINISH,1);
+  const pg=cx.createLinearGradient(20,0,20+pw*prog,0);pg.addColorStop(0,sel?sel.color:'#FF6B9D');pg.addColorStop(1,'#FFD54F');
+  cx.fillStyle=pg;rr(cx,20,py,Math.max(pw*prog,8),ph,4);cx.fill();
+  cx.font='14px serif';cx.textAlign='center';
+  cx.fillText('🏇',20+pw*prog,py-5);
+  cx.fillText('🏁',20+pw-6,py-5);cx.textAlign='start';
+
+  // hint
+  if(raceT<6000&&running){
+    const a=raceT<4000?1:Math.max(0,1-(raceT-4000)/2000);
+    const isTouch='ontouchstart' in window;
+    const hintTxt=isTouch?'Toca rapido para galopar!':'Presiona ESPACIO rapido!';
+    cx.globalAlpha=a;
+    cx.fillStyle='rgba(0,0,0,.5)';rr(cx,w/2-120,h-68,240,34,12);cx.fill();
+    cx.fillStyle='#fff';cx.font='bold 15px Fredoka';cx.textAlign='center';
+    cx.fillText(hintTxt,w/2,h-46);cx.textAlign='start';cx.globalAlpha=1;
+  }
+}
+
+function rr(c,x,y,w2,h2,r){c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w2-r,y);c.quadraticCurveTo(x+w2,y,x+w2,y+r);c.lineTo(x+w2,y+h2-r);c.quadraticCurveTo(x+w2,y+h2,x+w2-r,y+h2);c.lineTo(x+r,y+h2);c.quadraticCurveTo(x,y+h2,x,y+h2-r);c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath()}
+
+function showCeleb(){
+  sndWin();spawnConf();
+  const sorted=[...racers].sort((a,b)=>{if(a.fin&&b.fin)return a.finX===b.finX?0:b.finX-a.finX;return a.fin?-1:1});
+  const pos=sorted.findIndex(r=>r.me)+1;
+  document.getElementById('cTitle').textContent=MSGS[Math.floor(Math.random()*MSGS.length)];
+  document.getElementById('cEmoji').textContent='🏇';
+  document.getElementById('cPos').textContent=pos===1?'1er Lugar!':'Lugar '+pos;
+  show('celeb-screen');document.getElementById('race-screen').classList.remove('hidden');
+}
+
+function spawnConf(){
+  const cols=['#FF6B9D','#FFD54F','#4FC3F7','#66BB6A','#CE93D8','#FF8A65','#EF5350'];
+  for(let i=0;i<60;i++){const p=document.createElement('div');p.className='confetti';
+    p.style.cssText=`left:${Math.random()*100}vw;top:-20px;width:${8+Math.random()*10}px;height:${8+Math.random()*10}px;background:${cols[i%7]};border-radius:${Math.random()>.5?'50%':'2px'};animation-duration:${2+Math.random()*3}s;animation-delay:${Math.random()*2}s`;
+    document.body.appendChild(p);setTimeout(()=>p.remove(),7000)}
+}
+
+function removeSelectKeys(){if(window._selectKey){window.removeEventListener('keydown',window._selectKey);window._selectKey=null}}
+document.getElementById('againBtn').onclick=()=>{sndClick();document.querySelectorAll('.confetti').forEach(p=>p.remove());lastT=0;show('select-screen');buildGrid()};
+</script>
+</body>
+</html>

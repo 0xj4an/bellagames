@@ -1,48 +1,51 @@
-# Juego Bella
+# Juegos Bella
 
-Juego de carreras de animalitos para Bella. Elige tu animal favorito y compite contra dos rivales saltando obstaculos.
+Coleccion de juegos para Bella. Abre `juegosbella.html` para ver el menu principal.
 
-## Como jugar
+## Juegos
 
-1. Haz clic en **JUGAR**
-2. Elige un animalito (clic o teclas 1-0)
-3. Presiona **ESPACIO** para saltar los obstaculos (tambien funciona clic)
-4. Llega a la meta!
+### Carrera de Animalitos (`animalitos.html`)
 
-## Controles
+Elige tu animal favorito y compite contra dos rivales saltando obstaculos.
 
-| Accion | Control |
-|--------|---------|
-| Saltar | Barra espaciadora o clic |
-| Elegir animal | Clic en la tarjeta o tecla 1-0 |
+- **Controles**: ESPACIO o toca la pantalla para saltar
+- **Animales**: 🐎 Estrella · 🐕 Luna · 🐈 Michi · 🐢 Tito · 🐇 Rayo · 🦊 Zorro · 🐖 Rosita · 🦮 Bingo · 🦜 Coco · 🐻 Oso
+- Obstaculos: vallas, rocas, charcos, troncos
+- 3 vidas, los rivales tambien saltan y fallan
 
-## Animales disponibles
+### Hipodromo (`caballos.html`)
 
-🐎 Estrella · 🐕 Luna · 🐈 Michi · 🐢 Tito · 🐇 Rayo · 🦊 Zorro · 🐖 Rosita · 🦮 Bingo · 🦜 Coco · 🐻 Oso
+Carrera de caballos de cuarto de milla. Toca rapido para galopar.
 
-## Mecanica
+- **Controles**: Toca rapido o presiona ESPACIO repetidamente para dar velocidad
+- **Caballos**: Relampago · Estrella · Tornado · Luna · Rayo · Princesa · Trueno · Nube
+- 6 carriles, pista recta, IA con bursts de velocidad
+- Mientras mas rapido toques, mas rapido corre tu caballo
 
-- Tu animal corre automaticamente por la pista del medio
-- Aparecen obstaculos (vallas, rocas, charcos, troncos) en todas las pistas
-- **Salto exitoso**: checkmark verde + estrellas
-- **Choque**: explosion + pantalla tiembla + pierdes un corazon
-- 3 vidas (corazones)
-- Los rivales tambien saltan y a veces fallan
-- Siempre hay celebracion al final (es para ninos de 3 anos)
+### Letras y Numeros (`letras.html`)
+
+Aprende letras y numeros con mini-juegos variados.
+
+- **Mini-juegos**: Encuentra la letra/numero, asocia emoji con letra inicial, cuenta emojis, teclea la letra correcta
+- **Controles**: Flechas + Enter, clic/toca, o tecla directa
+- Sin vidas ni penalizacion, siempre positivo
+- Celebracion con confeti cada 5 aciertos
+- Letras A-Z con animales, numeros 1-10 con conteo
 
 ## Tecnologia
 
-Un solo archivo `index.html` con HTML + CSS + JavaScript puro. Cero dependencias.
+Archivos HTML independientes con CSS + JavaScript puro. Cero dependencias.
 
-- Canvas 2D para el juego
-- Web Audio API para los sonidos
+- Canvas 2D para los juegos
+- Web Audio API para sonidos y musica
 - Google Fonts (Bubblegum Sans + Fredoka)
+- Soporte movil (touch) y escritorio (teclado)
 
 ## Ejecutar
 
-Abrir `index.html` en el navegador, o con servidor local:
+Abrir `juegosbella.html` en el navegador, o con servidor local:
 
 ```bash
 python3 -m http.server 3000
-# abrir http://localhost:3000
+# abrir http://localhost:3000/juegosbella.html
 ```

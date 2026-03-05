@@ -2,12 +2,12 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Juego Bella</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@400;600;700&display=swap');
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:'Fredoka',sans-serif;overflow:hidden;background:#87CEEB;user-select:none}
+  body{font-family:'Fredoka',sans-serif;overflow:hidden;background:#87CEEB;user-select:none;touch-action:none;-webkit-touch-callout:none}
   .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s;z-index:10}
   .screen.hidden{opacity:0;pointer-events:none}
 
@@ -28,6 +28,7 @@
   #select-screen{background:linear-gradient(180deg,#E1BEE7,#F8BBD0,#FFCCBC)}
   .select-title{font-family:'Bubblegum Sans',cursive;font-size:clamp(1.8rem,5vw,3rem);color:#fff;text-shadow:3px 3px 0 #FF6B9D;margin-bottom:30px}
   .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;max-width:700px;width:92%}
+  @media(max-width:600px){.grid{grid-template-columns:repeat(3,1fr);gap:10px}.card .preview{font-size:3rem}.card{padding:14px 8px}}
   .card{background:#fff;border-radius:22px;padding:18px 10px;text-align:center;cursor:pointer;border:4px solid transparent;box-shadow:0 6px 20px rgba(0,0,0,.12);transition:all .3s cubic-bezier(.34,1.56,.64,1)}
   .card:hover{transform:translateY(-8px) scale(1.05);border-color:#FFD54F}
   .card .preview{font-size:4rem;line-height:1}.card .name{font-family:'Bubblegum Sans',cursive;font-size:1.1rem;margin-top:6px;color:#555}
@@ -53,9 +54,12 @@
   .again-btn:hover{transform:translateY(-2px)}.again-btn:active{transform:translateY(3px);box-shadow:0 2px 0 #388E3C}
   .confetti{position:fixed;z-index:25;animation:fall linear forwards}
   @keyframes fall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+  .back-btn{position:fixed;top:14px;left:14px;z-index:40;padding:8px 18px;font-family:'Bubblegum Sans',cursive;font-size:1.1rem;color:#fff;background:rgba(0,0,0,.3);border:3px solid rgba(255,255,255,.5);border-radius:25px;cursor:pointer;text-decoration:none;transition:all .15s;backdrop-filter:blur(4px)}
+  .back-btn:hover{background:rgba(0,0,0,.5)}
 </style>
 </head>
 <body>
+<a href="juegosbella.html" class="back-btn">Volver</a>
 <div id="title-screen" class="screen">
   <span class="deco">🐎</span><span class="deco">🐕</span><span class="deco">🐈</span><span class="deco">🐢</span><span class="deco">🐇</span><span class="deco" style="top:18%;right:22%;animation-delay:1.5s">🦊</span><span class="deco" style="bottom:20%;left:22%;animation-delay:.9s">🐖</span>
   <div class="title-wrap"><div class="welcome">Bienvenida Bella!</div><div class="title">Juego<br>Bella</div><button class="play-btn" id="playBtn">JUGAR</button></div>
@@ -169,21 +173,37 @@ let lives=3,score=0;
 const TRACKS=3,FINISH=5000,GROUND_Y_RATIO=0.72;
 
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));document.getElementById(id).classList.remove('hidden')}
-document.getElementById('playBtn').onclick=()=>{initAudio();sndClick();show('select-screen');buildGrid()};
+function goPlay(){initAudio();sndClick();show('select-screen');buildGrid()}
+document.getElementById('playBtn').onclick=goPlay;
+// Enter to start from title screen
+window._titleKey=e=>{if(e.key==='Enter'){e.preventDefault();goPlay();window.removeEventListener('keydown',window._titleKey)}};
+window.addEventListener('keydown',window._titleKey);
+
+let gridFocus=0;
+function highlightCard(i){
+  const cards=document.getElementById('grid').children;
+  if(!cards.length)return;
+  gridFocus=((i%cards.length)+cards.length)%cards.length;
+  Array.from(cards).forEach((c,j)=>c.style.borderColor=j===gridFocus?'#FFD54F':'transparent');
+}
 
 function buildGrid(){
-  const g=document.getElementById('grid');g.innerHTML='';
+  const g=document.getElementById('grid');g.innerHTML='';gridFocus=0;
   ANIMALS.forEach((a,i)=>{
     const c=document.createElement('div');c.className='card';
     c.innerHTML=`<div class="num">${i<9?i+1:0}</div><div class="preview">${a.emoji}</div><div class="name">${a.name}</div>`;
     c.onclick=()=>{sndClick();sel=a;removeSelectKeys();show('race-screen');countdown()};
     g.appendChild(c);
   });
+  highlightCard(0);
   // keyboard selection
   window._selectKey=e=>{
     const n=parseInt(e.key);
-    if(n>=1&&n<=ANIMALS.length){sndClick();sel=ANIMALS[n-1];removeSelectKeys();show('race-screen');countdown()}
-    if(e.key==='0'&&ANIMALS.length>=10){sndClick();sel=ANIMALS[9];removeSelectKeys();show('race-screen');countdown()}
+    if(n>=1&&n<=ANIMALS.length){sndClick();sel=ANIMALS[n-1];removeSelectKeys();show('race-screen');countdown();return}
+    if(e.key==='0'&&ANIMALS.length>=10){sndClick();sel=ANIMALS[9];removeSelectKeys();show('race-screen');countdown();return}
+    if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();highlightCard(gridFocus+1)}
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();highlightCard(gridFocus-1)}
+    if(e.key==='Enter'){e.preventDefault();sndClick();sel=ANIMALS[gridFocus];removeSelectKeys();show('race-screen');countdown()}
   };
   window.addEventListener('keydown',window._selectKey);
 }
@@ -205,6 +225,7 @@ function resize(){const d=devicePixelRatio;cv.width=innerWidth*d;cv.height=inner
 // === INPUT ===
 function onKey(e){if((e.code==='Space'||e.key===' ')&&running&&!finished){e.preventDefault();tryJump()}}
 function onClick(){if(running&&!finished)tryJump()}
+function onTouch(e){if(running&&!finished){e.preventDefault();tryJump()}}
 
 function tryJump(){
   const me=racers.find(r=>r.me);
@@ -250,10 +271,11 @@ function initRace(){
 
   window.addEventListener('keydown',onKey);
   cv.addEventListener('click',onClick);
+  cv.addEventListener('touchstart',onTouch,{passive:false});
   startMusic();
   requestAnimationFrame(loop);
 }
-function cleanup(){window.removeEventListener('keydown',onKey);cv.removeEventListener('click',onClick);stopMusic()}
+function cleanup(){window.removeEventListener('keydown',onKey);cv.removeEventListener('click',onClick);cv.removeEventListener('touchstart',onTouch);stopMusic()}
 
 function loop(ts){
   if(!running)return;
@@ -655,13 +677,15 @@ function draw(){
   cx.fillText(me.a.emoji,20+pw*prog,py-5);
   cx.fillText('🏁',20+pw-6,py-5);cx.textAlign='start';
 
-  // spacebar hint (first seconds)
+  // jump hint (first seconds) - detect touch device
   if(raceT<6000&&running){
     const a=raceT<4000?1:Math.max(0,1-(raceT-4000)/2000);
+    const isTouch='ontouchstart' in window;
+    const hintTxt=isTouch?'Toca la pantalla para saltar':'Presiona [ ESPACIO ] para saltar';
     cx.globalAlpha=a;
-    cx.fillStyle='rgba(0,0,0,.5)';rr(cx,w/2-110,h-68,220,34,12);cx.fill();
+    cx.fillStyle='rgba(0,0,0,.5)';rr(cx,w/2-130,h-68,260,34,12);cx.fill();
     cx.fillStyle='#fff';cx.font='bold 15px Fredoka';cx.textAlign='center';
-    cx.fillText('Presiona [ ESPACIO ] para saltar',w/2,h-46);cx.textAlign='start';cx.globalAlpha=1;
+    cx.fillText(hintTxt,w/2,h-46);cx.textAlign='start';cx.globalAlpha=1;
   }
 }
 
