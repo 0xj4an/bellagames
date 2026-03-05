@@ -1,0 +1,22 @@
+{
+  "name": "Juegos Bella",
+  "short_name": "Juegos Bella",
+  "description": "Coleccion de juegos para Bella",
+  "start_url": "/juegosbella.html",
+  "display": "standalone",
+  "background_color": "#87CEEB",
+  "theme_color": "#FF6B9D",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
