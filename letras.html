@@ -110,7 +110,7 @@ function sndClick(){tone(500,.04,'sine',.08)}
 function sndCeleb(){[523,659,784,1047,784,1047,1319].forEach((n,i)=>setTimeout(()=>tone(n,.2,'sine',.07),i*120))}
 
 // === SPEECH (Amazon Polly via proxy + Web Speech API fallback) ===
-let ttsOk=true,currentTTSAudio=null,speechGen=0,cachedVoice=null;
+let ttsOk=true,activeTTSAudios=[],cachedVoice=null;
 function scoreVoice(v){
   let s=0;const name=(v.name||'').toLowerCase(),lang=v.lang||'',uri=(v.voiceURI||'').toLowerCase();
   if(!lang.startsWith('es'))return -1;
@@ -126,24 +126,29 @@ function pickVoice(){
   let best=null,bs=-1;for(const v of voices){const s=scoreVoice(v);if(s>bs){bs=s;best=v}}
   if(best)cachedVoice=best;return cachedVoice;
 }
+function stopSpeech(){
+  activeTTSAudios.forEach(a=>{a.pause();a.src=''});
+  activeTTSAudios=[];
+  if('speechSynthesis' in window)window.speechSynthesis.cancel();
+}
 function speakLocal(text){
   if(!('speechSynthesis' in window))return;
-  window.speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);u.lang='es-MX';u.rate=.85;u.pitch=1.1;
   const v=pickVoice();if(v){u.voice=v;if(/premium|enhanced|neural|siri/i.test(v.name)){u.pitch=1.05;u.rate=.9}}
   window.speechSynthesis.speak(u);
 }
 function speak(text){
-  const gen=++speechGen;
-  if(currentTTSAudio){currentTTSAudio.pause();currentTTSAudio=null}
-  if('speechSynthesis' in window)window.speechSynthesis.cancel();
   if(ttsOk){
     fetch('/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({voice:'Mia',text:text,service:'polly'})})
     .then(r=>r.json()).then(d=>{
-      if(gen!==speechGen)return;
-      if(d.success&&d.speak_url){currentTTSAudio=new Audio(d.speak_url);currentTTSAudio.play()}
+      if(d.success&&d.speak_url){
+        const audio=new Audio(d.speak_url);
+        activeTTSAudios.push(audio);
+        audio.onended=()=>{activeTTSAudios=activeTTSAudios.filter(a=>a!==audio)};
+        audio.play();
+      }
       else throw 0;
-    }).catch(()=>{if(gen===speechGen){ttsOk=false;speakLocal(text)}});
+    }).catch(()=>{ttsOk=false;speakLocal(text)});
     return;
   }
   speakLocal(text);
@@ -508,7 +513,7 @@ function showFeedback(msg,isRetry){
   txt.style.animation='none';void txt.offsetWidth;txt.style.animation='fbPop .6s cubic-bezier(.34,1.56,.64,1) forwards';
   fbTimer=setTimeout(()=>{fb.classList.add('hidden');fbTimer=null},isRetry?700:900);
   const name=player?', '+player:'';
-  speak(isRetry?'Intenta otra vez'+name:msg.replace('!','')+name);
+  stopSpeech();speak(isRetry?'Intenta otra vez'+name:msg.replace('!','')+name);
 }
 
 function spawnStars(btn){

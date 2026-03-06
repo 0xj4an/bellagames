@@ -146,7 +146,7 @@ function sndClick(){tone(500,.04,'sine',.08)}
 function sndCeleb(){[523,659,784,1047,784,1047,1319].forEach((n,i)=>setTimeout(()=>tone(n,.2,'sine',.07),i*120))}
 
 // === SPEECH (Amazon Polly via proxy + Web Speech API fallback) ===
-let ttsOk=true,currentTTSAudio=null,speechGen=0,cachedVoice=null;
+let ttsOk=true,activeTTSAudios=[],cachedVoice=null;
 function scoreVoice(v){
   let s=0;const name=(v.name||'').toLowerCase(),lang=v.lang||'',uri=(v.voiceURI||'').toLowerCase();
   if(!lang.startsWith('es'))return -1;
@@ -162,24 +162,29 @@ function pickVoice(){
   let best=null,bs=-1;for(const v of voices){const s=scoreVoice(v);if(s>bs){bs=s;best=v}}
   if(best)cachedVoice=best;return cachedVoice;
 }
+function stopSpeech(){
+  activeTTSAudios.forEach(a=>{a.pause();a.src=''});
+  activeTTSAudios=[];
+  if('speechSynthesis' in window)window.speechSynthesis.cancel();
+}
 function speakLocal(text){
   if(!('speechSynthesis' in window))return;
-  window.speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);u.lang='es-MX';u.rate=.85;u.pitch=1.1;
   const v=pickVoice();if(v){u.voice=v;if(/premium|enhanced|neural|siri/i.test(v.name)){u.pitch=1.05;u.rate=.9}}
   window.speechSynthesis.speak(u);
 }
 function speak(text){
-  const gen=++speechGen;
-  if(currentTTSAudio){currentTTSAudio.pause();currentTTSAudio=null}
-  if('speechSynthesis' in window)window.speechSynthesis.cancel();
   if(ttsOk){
     fetch('/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({voice:'Mia',text:text,service:'polly'})})
     .then(r=>r.json()).then(d=>{
-      if(gen!==speechGen)return;
-      if(d.success&&d.speak_url){currentTTSAudio=new Audio(d.speak_url);currentTTSAudio.play()}
+      if(d.success&&d.speak_url){
+        const audio=new Audio(d.speak_url);
+        activeTTSAudios.push(audio);
+        audio.onended=()=>{activeTTSAudios=activeTTSAudios.filter(a=>a!==audio)};
+        audio.play();
+      }
       else throw 0;
-    }).catch(()=>{if(gen===speechGen){ttsOk=false;speakLocal(text)}});
+    }).catch(()=>{ttsOk=false;speakLocal(text)});
     return;
   }
   speakLocal(text);
@@ -302,7 +307,7 @@ function selectLevel(idx){
 
 // === STEP ANIMATION ===
 let stepTimers=[];
-function clearSteps(){stepTimers.forEach(t=>clearTimeout(t));stepTimers=[];}
+function clearSteps(){stepTimers.forEach(t=>clearTimeout(t));stepTimers=[];stopSpeech();}
 
 // === LEVELS BUTTON (from game back to level select) ===
 document.getElementById('levelsBtn').onclick=()=>{
@@ -385,7 +390,7 @@ function renderRound(){
       g2.innerHTML=renderEmojiGroup(emoji,r.b,false,lv);
       area.appendChild(g2);
       speak('y llegan '+nb+' mas');
-    },2500));
+    },3500));
 
     // Step 3: show question and options
     stepTimers.push(setTimeout(function(){
@@ -396,7 +401,7 @@ function renderRound(){
       area.appendChild(od);
       bindOpts();locked=false;highlightOpt(0);
       speak('cuantos hay en total'+pn+'?');
-    },5000));
+    },7000));
 
   } else {
     // === SUBTRACTIONS: 3 steps ===
@@ -412,7 +417,7 @@ function renderRound(){
       var op=document.createElement('div');op.className='operator';op.textContent='-';
       area.appendChild(op);
       speak('pero se van '+nb);
-    },2500));
+    },3500));
 
     // Step 3: show question and options
     stepTimers.push(setTimeout(function(){
@@ -423,7 +428,7 @@ function renderRound(){
       area.appendChild(od);
       bindOpts();locked=false;highlightOpt(0);
       speak('cuantos quedan'+pn+'?');
-    },5000));
+    },7000));
   }
 }
 
@@ -483,7 +488,7 @@ function checkAnswer(val,idx){
     const msgs=['Muy bien'+pn,'Excelente'+pn,'Bravo'+pn,'Genial'+pn,'Perfecto'+pn];
     const msg=msgs[Math.floor(Math.random()*msgs.length)];
     showFeedback(MSGS_OK[Math.floor(Math.random()*MSGS_OK.length)],false);
-    speak(msg);
+    stopSpeech();speak(msg);
     spawnStars(btn);
     if(streak%5===0)spawnConf();
     setTimeout(nextRound,1200);
@@ -494,7 +499,7 @@ function checkAnswer(val,idx){
     const pn=PLAYER?(' '+PLAYER):'';
     const retryMsgs=['Intenta otra vez'+pn,'Casi'+pn+'!'];
     showFeedback(MSGS_RETRY[Math.floor(Math.random()*MSGS_RETRY.length)],true);
-    speak(retryMsgs[Math.floor(Math.random()*retryMsgs.length)]);
+    stopSpeech();speak(retryMsgs[Math.floor(Math.random()*retryMsgs.length)]);
     // highlight correct after delay
     setTimeout(()=>{
       btn.classList.remove('wrong');
