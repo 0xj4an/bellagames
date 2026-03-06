@@ -9,9 +9,9 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Bela y Penu">
+<meta name="apple-mobile-web-app-title" content="Mis Juegos">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Sumas y Restas - Juegos Bela y Penu</title>
+<title>Sumas y Restas - Mis Juegos</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@400;600;700&display=swap');
   *{margin:0;padding:0;box-sizing:border-box}
@@ -108,7 +108,7 @@
 </style>
 </head>
 <body>
-<a href="juegosbella.html" class="back-btn" id="backBtn">Volver</a>
+<a href="juegos.html" class="back-btn" id="backBtn">Volver</a>
 
 <div id="title-screen" class="screen">
   <span class="deco">➕</span><span class="deco">➖</span><span class="deco">🐥</span><span class="deco">🐰</span><span class="deco">🐱</span><span class="deco">⭐</span>
@@ -191,19 +191,15 @@ function speak(text){
 }
 if('speechSynthesis' in window){window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=()=>{cachedVoice=null;pickVoice()}}
 
-// === BACKGROUND MUSIC (happy xylophone) ===
-let musicPlaying=false,musicTimer=null;
-const MELODY=[659,784,880,784,659,0,523,587,659,587,523,0,440,523,659,784,880,0,784,659,523,440,523,0];
-let musicStep=0;
-function startMusic(){if(musicPlaying)return;musicPlaying=true;musicStep=0;playMusicStep()}
-function playMusicStep(){
-  if(!musicPlaying||!ac)return;
-  const i=musicStep%MELODY.length;
-  const note=MELODY[i];
-  if(note>0)tone(note,.3,'sine',.025);
-  musicStep++;musicTimer=setTimeout(playMusicStep,320);
+// === BACKGROUND MUSIC (MP3 - "Monkeys Spinning Monkeys" Kevin MacLeod, CC BY 4.0) ===
+let musicAudio=null;
+function startMusic(){
+  if(musicAudio)return;
+  musicAudio=new Audio('music/fun.mp3');
+  musicAudio.loop=true;musicAudio.volume=0.18;
+  musicAudio.play().catch(function(){});
 }
-function stopMusic(){musicPlaying=false;if(musicTimer){clearTimeout(musicTimer);musicTimer=null}}
+function stopMusic(){if(musicAudio){musicAudio.pause();musicAudio.currentTime=0;musicAudio=null;}}
 
 // === DATA ===
 const LEVELS=[

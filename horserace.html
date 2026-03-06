@@ -9,9 +9,9 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Bela y Penu">
+<meta name="apple-mobile-web-app-title" content="Mis Juegos">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Hipodromo - Juegos Bela y Penu</title>
+<title>Hipodromo - Mis Juegos</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@400;600;700&display=swap');
   *{margin:0;padding:0;box-sizing:border-box}
@@ -37,6 +37,17 @@
   .deco:nth-child(4){bottom:28%;right:5%;animation-delay:.3s}
   @keyframes floaty{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-15px) rotate(3deg)}}
 
+  #level-screen{background:linear-gradient(180deg,#E8D5B7,#F0C89A,#D4A574)}
+  .level-title{font-family:'Bubblegum Sans',cursive;font-size:clamp(1.8rem,5vw,3rem);color:#fff;text-shadow:3px 3px 0 #A0714E;margin-bottom:24px}
+  .level-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;max-width:700px;width:92%}
+  @media(max-width:600px){.level-grid{grid-template-columns:repeat(2,1fr);gap:10px}}
+  .level-card{position:relative;background:#fff;border-radius:22px;padding:18px 10px;text-align:center;cursor:pointer;border:4px solid transparent;box-shadow:0 6px 20px rgba(0,0,0,.12);transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+  .level-card:hover{transform:translateY(-8px) scale(1.05);border-color:#FFD54F}
+  .level-card .lemoji{font-size:3rem;display:block;margin-bottom:6px}
+  .level-card .lname{font-family:'Bubblegum Sans',cursive;font-size:1.1rem;color:#FF6B9D}
+  .level-card .ldesc{font-size:.8rem;color:#888;margin-top:4px}
+  .level-card .lnum{position:absolute;top:-8px;left:-8px;width:28px;height:28px;background:#FF6B9D;color:#fff;border-radius:50%;font-family:'Bubblegum Sans',cursive;font-size:.95rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+
   #select-screen{background:linear-gradient(180deg,#E8D5B7,#F0C89A,#D4A574)}
   .select-title{font-family:'Bubblegum Sans',cursive;font-size:clamp(1.8rem,5vw,3rem);color:#fff;text-shadow:3px 3px 0 #A0714E;margin-bottom:24px}
   .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;max-width:650px;width:92%}
@@ -47,6 +58,34 @@
   .card .name{font-family:'Bubblegum Sans',cursive;font-size:1.1rem;margin-top:6px;color:#555}
   .card .num{position:absolute;top:-8px;left:-8px;width:28px;height:28px;background:#FF6B9D;color:#fff;border-radius:50%;font-family:'Bubblegum Sans',cursive;font-size:.95rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2)}
   .card .color-dot{width:14px;height:14px;border-radius:50%;margin:4px auto 0;border:2px solid rgba(0,0,0,.1)}
+  .paw-img{width:60px;height:60px;border-radius:50%;object-fit:cover}
+  .card.add-card{border:4px dashed rgba(0,0,0,.15);background:rgba(255,255,255,.5)}
+  .card.add-card:hover{border-color:#FFD54F;background:rgba(255,255,255,.8)}
+  .card.add-card .preview{font-size:2.5rem}
+  .card .remove-btn{position:absolute;top:-8px;right:-8px;width:24px;height:24px;background:#EF5350;color:#fff;border:2px solid #fff;border-radius:50%;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2);padding:0;line-height:1;z-index:2}
+  .card .remove-btn:hover{background:#D32F2F;transform:scale(1.15)}
+  .create-overlay{position:fixed;inset:0;z-index:35;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;transition:opacity .3s}
+  .create-overlay.hidden{opacity:0;pointer-events:none}
+  .create-box{background:#fff;border-radius:28px;padding:28px 32px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.25);max-width:340px;width:90%}
+  .create-title{font-family:'Bubblegum Sans',cursive;font-size:1.6rem;color:#FF6B9D;margin-bottom:16px}
+  .create-input{font-family:'Bubblegum Sans',cursive;font-size:1.4rem;text-align:center;padding:10px 20px;border:3px solid #FFD54F;border-radius:16px;outline:none;width:100%;color:#555;background:#fff}
+  .create-input:focus{border-color:#FF6B9D;box-shadow:0 0 0 3px rgba(255,107,157,.2)}
+  .create-input::placeholder{color:#ccc}
+  .color-row{display:flex;gap:10px;justify-content:center;margin:16px 0;flex-wrap:wrap}
+  .color-opt{width:36px;height:36px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .2s}
+  .color-opt:hover,.color-opt.picked{transform:scale(1.2);border-color:#333}
+  .create-error{font-family:'Bubblegum Sans',cursive;font-size:.9rem;color:#EF5350;min-height:1.2em;margin:8px 0}
+  .create-btns{display:flex;gap:12px;justify-content:center}
+  .create-ok{padding:10px 28px;font-family:'Bubblegum Sans',cursive;font-size:1.2rem;color:#fff;background:linear-gradient(135deg,#66BB6A,#4CAF50);border:3px solid #fff;border-radius:25px;cursor:pointer;box-shadow:0 4px 0 #388E3C}
+  .create-ok:active{transform:translateY(2px);box-shadow:0 2px 0 #388E3C}
+  .create-cancel{padding:10px 22px;font-family:'Bubblegum Sans',cursive;font-size:1.2rem;color:#fff;background:rgba(0,0,0,.3);border:3px solid rgba(255,255,255,.5);border-radius:25px;cursor:pointer}
+  .confirm-overlay{position:fixed;inset:0;z-index:36;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center}
+  .confirm-overlay.hidden{opacity:0;pointer-events:none}
+  .confirm-box{background:#fff;border-radius:24px;padding:24px 28px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.2);max-width:300px}
+  .confirm-text{font-family:'Bubblegum Sans',cursive;font-size:1.3rem;color:#333;margin-bottom:16px}
+  .confirm-btns{display:flex;gap:12px;justify-content:center}
+  .confirm-yes{padding:8px 24px;font-family:'Bubblegum Sans',cursive;font-size:1.1rem;color:#fff;background:#EF5350;border:3px solid #fff;border-radius:20px;cursor:pointer}
+  .confirm-no{padding:8px 24px;font-family:'Bubblegum Sans',cursive;font-size:1.1rem;color:#fff;background:#66BB6A;border:3px solid #fff;border-radius:20px;cursor:pointer}
 
   #race-screen{z-index:5;justify-content:flex-start}
   canvas#game{position:fixed;inset:0;width:100%;height:100%;display:block}
@@ -71,15 +110,20 @@
 </style>
 </head>
 <body>
-<a href="juegosbella.html" class="back-btn">Volver</a>
+<a href="juegos.html" class="back-btn">Volver</a>
 
 <div id="title-screen" class="screen">
   <span class="deco">🏇</span><span class="deco">🐴</span><span class="deco">🏇</span><span class="deco">🐴</span>
   <div class="title-wrap">
-    <div class="welcome">Bienvenida Bela!</div>
+    <div class="welcome" id="welcomeMsg">Hola!</div>
     <div class="title">Hipodromo</div>
     <button class="play-btn" id="playBtn">CORRER</button>
   </div>
+</div>
+
+<div id="level-screen" class="screen hidden">
+  <div class="level-title">Elige dificultad</div>
+  <div class="level-grid" id="levelGrid"></div>
 </div>
 
 <div id="select-screen" class="screen hidden">
@@ -102,7 +146,14 @@
   </div>
 </div>
 
+<div class="create-overlay hidden" id="createOverlay"></div>
+<div class="confirm-overlay hidden" id="confirmOverlay"></div>
+
 <script>
+// === PLAYER ===
+const PLAYER=sessionStorage.getItem('jugadora')||'';
+if(PLAYER){const w=document.getElementById('welcomeMsg');if(w)w.textContent='Hola '+PLAYER+'!';}
+
 // === AUDIO ===
 const AC=window.AudioContext||window.webkitAudioContext;let ac;
 function initAudio(){if(!ac)ac=new AC();if(ac.state==='suspended')ac.resume()}
@@ -114,31 +165,15 @@ function sndGo(){tone(880,.25,'sine',.14);setTimeout(()=>tone(1100,.25,'sine',.1
 function sndWin(){[523,659,784,1047,784,1047,1319].forEach((n,i)=>setTimeout(()=>tone(n,.2,'sine',.08),i*130))}
 function sndBell(){tone(1200,.3,'sine',.1);setTimeout(()=>tone(1500,.3,'sine',.08),150)}
 
-// === BACKGROUND MUSIC (children's march) ===
-let musicPlaying=false,musicTimer=null;
-const MELODY=[
-  392,392,523,523,587,587,523,0,
-  494,494,440,440,392,392,392,0,
-  392,392,523,523,587,587,523,0,
-  494,440,392,440,523,494,392,0,
-];
-const BASS=[
-  196,0,262,0,294,0,262,0,
-  247,0,220,0,196,0,196,0,
-  196,0,262,0,294,0,262,0,
-  247,220,196,220,262,247,196,0,
-];
-let musicStep=0;
-function startMusic(){if(musicPlaying)return;musicPlaying=true;musicStep=0;playMusicStep()}
-function playMusicStep(){
-  if(!musicPlaying||!ac)return;
-  const i=musicStep%MELODY.length;
-  const note=MELODY[i],bass=BASS[i];
-  if(note>0)tone(note,.22,'sine',.03);
-  if(bass>0)tone(bass,.28,'sine',.018);
-  musicStep++;musicTimer=setTimeout(playMusicStep,240);
+// === BACKGROUND MUSIC (MP3 - "Monkeys Spinning Monkeys" Kevin MacLeod, CC BY 4.0) ===
+let musicAudio=null;
+function startMusic(){
+  if(musicAudio)return;
+  musicAudio=new Audio('music/fun.mp3');
+  musicAudio.loop=true;musicAudio.volume=0.18;
+  musicAudio.play().catch(function(){});
 }
-function stopMusic(){musicPlaying=false;if(musicTimer){clearTimeout(musicTimer);musicTimer=null}}
+function stopMusic(){if(musicAudio){musicAudio.pause();musicAudio.currentTime=0;musicAudio=null;}}
 
 // === DATA ===
 const HORSES=[
@@ -150,22 +185,174 @@ const HORSES=[
   {name:'Princesa',emoji:'🏇',color:'#F06292'},
   {name:'Trueno',emoji:'🏇',color:'#FF7043'},
   {name:'Nube',emoji:'🏇',color:'#78909C'},
+  {name:'Chase',emoji:'🐕‍🦺',color:'#1565C0',img:'paw/chase.jpg'},
+  {name:'Marshall',emoji:'🐕',color:'#E53935',img:'paw/marshall.jpg'},
+  {name:'Skye',emoji:'🐕',color:'#F48FB1',img:'paw/skye.jpg'},
 ];
+// Preload Paw Patrol images
+HORSES.forEach(h=>{
+  if(h.img){
+    h._imgObj=new Image();
+    h._imgObj.src=h.img;
+  }
+});
+
+// === CUSTOM HORSES (localStorage) ===
+const CUSTOM_COLORS=['#E53935','#FFB300','#1E88E5','#AB47BC','#43A047','#F06292','#FF7043','#78909C','#00897B','#5C6BC0'];
+function getCustomHorses(){
+  try{return JSON.parse(localStorage.getItem('customHorses'))||[];}catch(e){return[];}
+}
+function saveCustomHorses(arr){
+  try{localStorage.setItem('customHorses',JSON.stringify(arr));}catch(e){}
+}
+// Load saved custom horses into HORSES array
+getCustomHorses().forEach(ch=>{
+  HORSES.push({name:ch.name,emoji:'🏇',color:ch.color,custom:true});
+});
+
+function showCreateHorse(){
+  removeSelectKeys();
+  const ov=document.getElementById('createOverlay');
+  ov.classList.remove('hidden');
+  ov.innerHTML=
+    '<div class="create-box">'+
+    '<div class="create-title">Crea tu caballo</div>'+
+    '<input class="create-input" id="horseNameInput" type="text" maxlength="12" placeholder="Nombre" autocomplete="off" autocapitalize="words">'+
+    '<div class="color-row" id="colorRow"></div>'+
+    '<div class="create-error" id="createError"></div>'+
+    '<div class="create-btns">'+
+    '<button class="create-ok" id="createOk">Listo!</button>'+
+    '<button class="create-cancel" id="createCancel">Volver</button>'+
+    '</div></div>';
+  // render color options
+  let pickedColor=CUSTOM_COLORS[0];
+  const row=document.getElementById('colorRow');
+  CUSTOM_COLORS.forEach(function(c,i){
+    const dot=document.createElement('div');
+    dot.className='color-opt'+(i===0?' picked':'');
+    dot.style.background=c;
+    dot.onclick=function(){
+      pickedColor=c;
+      row.querySelectorAll('.color-opt').forEach(function(d){d.classList.remove('picked');});
+      dot.classList.add('picked');
+    };
+    row.appendChild(dot);
+  });
+  const inp=document.getElementById('horseNameInput');
+  setTimeout(function(){inp.focus();},100);
+  document.getElementById('createOk').onclick=function(){
+    var name=(inp.value||'').trim();
+    var errEl=document.getElementById('createError');
+    if(!name){errEl.textContent='Escribe un nombre';inp.focus();return;}
+    name=name.charAt(0).toUpperCase()+name.slice(1);
+    if(HORSES.some(function(h){return h.name.toLowerCase()===name.toLowerCase();})){
+      errEl.textContent='Ya existe!';inp.focus();return;
+    }
+    var customs=getCustomHorses();
+    customs.push({name:name,color:pickedColor});
+    saveCustomHorses(customs);
+    HORSES.push({name:name,emoji:'🏇',color:pickedColor,custom:true});
+    ov.classList.add('hidden');
+    buildGrid();
+  };
+  document.getElementById('createCancel').onclick=function(){
+    ov.classList.add('hidden');
+    buildGrid();
+  };
+  inp.onkeydown=function(e){
+    if(e.key==='Enter'){e.preventDefault();document.getElementById('createOk').click();}
+    if(e.key==='Escape'){e.preventDefault();document.getElementById('createCancel').click();}
+  };
+}
+
+function showRemoveHorse(name){
+  removeSelectKeys();
+  const ov=document.getElementById('confirmOverlay');
+  ov.classList.remove('hidden');
+  ov.innerHTML=
+    '<div class="confirm-box">'+
+    '<div class="confirm-text">Borrar a '+name+'?</div>'+
+    '<div class="confirm-btns">'+
+    '<button class="confirm-yes" id="rmYes">Si</button>'+
+    '<button class="confirm-no" id="rmNo">No</button>'+
+    '</div></div>';
+  document.getElementById('rmYes').onclick=function(){
+    var customs=getCustomHorses().filter(function(ch){return ch.name!==name;});
+    saveCustomHorses(customs);
+    // Remove from HORSES array
+    var idx=HORSES.findIndex(function(h){return h.name===name&&h.custom;});
+    if(idx>=0)HORSES.splice(idx,1);
+    ov.classList.add('hidden');
+    buildGrid();
+  };
+  document.getElementById('rmNo').onclick=function(){
+    ov.classList.add('hidden');
+    buildGrid();
+  };
+}
+
 const MSGS=['BRAVO','GENIAL','SUPER','INCREIBLE','FANTASTICO','CAMPEON'];
 const LANES=6;
-const FINISH=4000;
+let FINISH=4000;
+
+const LEVELS=[
+  {name:'Paseo',emoji:'🐴',desc:'Pista corta, facil',finish:2500,aiSpd:1.0,aiBurst:0.6},
+  {name:'Trote',emoji:'🏇',desc:'Pista media',finish:4000,aiSpd:1.4,aiBurst:0.8},
+  {name:'Galope',emoji:'💨',desc:'Pista larga',finish:5500,aiSpd:1.6,aiBurst:1.0},
+  {name:'Sprint',emoji:'⚡',desc:'Super rapido',finish:7000,aiSpd:1.8,aiBurst:1.2},
+  {name:'Gran Premio',emoji:'🏆',desc:'Para campeones',finish:9000,aiSpd:2.0,aiBurst:1.4},
+];
 
 // === STATE ===
+let currentLevel=null;
 let sel=null,running=false,finished=false;
 let cv,cx,camX=0,raceT=0,lastT=0;
 let racers=[],effects=[];
 let tapCount=0,tapDecay=0,lastTapT=0;
 
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));document.getElementById(id).classList.remove('hidden')}
-function goPlay(){initAudio();sndClick();show('select-screen');buildGrid()}
+function goPlay(){initAudio();sndClick();show('level-screen');buildLevelGrid()}
 document.getElementById('playBtn').onclick=goPlay;
 window._titleKey=e=>{if(e.key==='Enter'){e.preventDefault();goPlay();window.removeEventListener('keydown',window._titleKey)}};
 window.addEventListener('keydown',window._titleKey);
+
+// === LEVEL SELECTION ===
+let levelFocus=0;
+function removeLevelKeys(){if(window._levelKey){window.removeEventListener('keydown',window._levelKey);window._levelKey=null}}
+
+function highlightLevel(i){
+  const cards=document.getElementById('levelGrid').children;
+  if(!cards.length)return;
+  levelFocus=((i%cards.length)+cards.length)%cards.length;
+  Array.from(cards).forEach((c,j)=>c.style.borderColor=j===levelFocus?'#FFD54F':'transparent');
+}
+
+function buildLevelGrid(){
+  const g=document.getElementById('levelGrid');g.innerHTML='';levelFocus=0;
+  LEVELS.forEach((lv,i)=>{
+    const c=document.createElement('div');c.className='level-card';
+    c.innerHTML='<div class="lnum">'+(i+1)+'</div><span class="lemoji">'+lv.emoji+'</span><div class="lname">'+lv.name+'</div><div class="ldesc">'+lv.desc+'</div>';
+    c.onclick=()=>{sndClick();pickLevel(lv)};
+    g.appendChild(c);
+  });
+  highlightLevel(0);
+  window._levelKey=e=>{
+    const n=parseInt(e.key);
+    if(n>=1&&n<=LEVELS.length){sndClick();pickLevel(LEVELS[n-1]);return}
+    if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();highlightLevel(levelFocus+1)}
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();highlightLevel(levelFocus-1)}
+    if(e.key==='Enter'){e.preventDefault();sndClick();pickLevel(LEVELS[levelFocus])}
+  };
+  window.addEventListener('keydown',window._levelKey);
+}
+
+function pickLevel(lv){
+  currentLevel=lv;
+  FINISH=lv.finish;
+  removeLevelKeys();
+  show('select-screen');
+  buildGrid();
+}
 
 let gridFocus=0;
 function highlightCard(i){
@@ -179,17 +366,34 @@ function buildGrid(){
   const g=document.getElementById('grid');g.innerHTML='';gridFocus=0;
   HORSES.forEach((h,i)=>{
     const c=document.createElement('div');c.className='card';
-    c.innerHTML=`<div class="num">${i+1}</div><div class="preview">${h.emoji}</div><div class="name">${h.name}</div><div class="color-dot" style="background:${h.color}"></div>`;
+    const preview=h.img?`<img src="${h.img}" class="paw-img">`:`${h.emoji}`;
+    c.innerHTML=`<div class="num">${i+1}</div><div class="preview">${preview}</div><div class="name">${h.name}</div><div class="color-dot" style="background:${h.color}"></div>`;
+    if(h.custom){
+      const rm=document.createElement('button');rm.className='remove-btn';rm.textContent='✕';
+      rm.onclick=function(e){e.stopPropagation();sndClick();showRemoveHorse(h.name);};
+      c.appendChild(rm);
+    }
     c.onclick=()=>{sndClick();sel=h;removeSelectKeys();show('race-screen');countdown()};
     g.appendChild(c);
   });
+  // Add "create horse" card
+  const addCard=document.createElement('div');
+  addCard.className='card add-card';
+  addCard.innerHTML='<div class="preview">➕</div><div class="name">Crear caballo</div>';
+  addCard.onclick=function(){sndClick();showCreateHorse();};
+  g.appendChild(addCard);
   highlightCard(0);
   window._selectKey=e=>{
+    const total=g.children.length;
     const n=parseInt(e.key);
     if(n>=1&&n<=HORSES.length){sndClick();sel=HORSES[n-1];removeSelectKeys();show('race-screen');countdown();return}
     if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();highlightCard(gridFocus+1)}
     if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();highlightCard(gridFocus-1)}
-    if(e.key==='Enter'){e.preventDefault();sndClick();sel=HORSES[gridFocus];removeSelectKeys();show('race-screen');countdown()}
+    if(e.key==='Enter'){
+      e.preventDefault();
+      if(gridFocus===total-1){sndClick();showCreateHorse();}
+      else{sndClick();sel=HORSES[gridFocus];removeSelectKeys();show('race-screen');countdown();}
+    }
   };
   window.addEventListener('keydown',window._selectKey);
 }
@@ -246,8 +450,8 @@ function initRace(){
   racers=all.map((h,i)=>({
     h,x:60,lane:i,
     laneY:laneH*i+laneH*.5+6,
-    baseSpd:1.4+Math.random()*.4,
-    spd:0,tgt:1.4+Math.random()*.3,
+    baseSpd:currentLevel.aiSpd+Math.random()*.4,
+    spd:0,tgt:currentLevel.aiSpd+Math.random()*.3,
     me:h.name===sel.name,
     bob:Math.random()*Math.PI*2,
     fin:false,finX:0,
@@ -304,7 +508,7 @@ function update(dt){
       }
       if(r.burstT>0){
         r.burstT-=dt;
-        r.tgt=r.baseSpd+1+Math.random()*.8;
+        r.tgt=r.baseSpd+(1+Math.random()*.8)*currentLevel.aiBurst;
       } else {
         r.tgt=r.baseSpd+Math.sin(raceT*.001+r.lane)*.3;
       }
@@ -431,8 +635,13 @@ function draw(){
     // horse emoji
     const sz=r.me?52:40;
     cx.save();cx.scale(-1,1); // face right
-    cx.font=sz+'px serif';cx.textAlign='center';cx.textBaseline='middle';
-    cx.fillText(r.h.emoji,0,0);
+    if(r.h._imgObj&&r.h._imgObj.complete){
+      cx.beginPath();cx.arc(0,0,sz/2,0,Math.PI*2);cx.clip();
+      cx.drawImage(r.h._imgObj,-sz/2,-sz/2,sz,sz);
+    } else {
+      cx.font=sz+'px serif';cx.textAlign='center';cx.textBaseline='middle';
+      cx.fillText(r.h.emoji,0,0);
+    }
     cx.restore();
 
     // player name tag
@@ -527,7 +736,11 @@ function showCeleb(){
   const sorted=[...racers].sort((a,b)=>{if(a.fin&&b.fin)return a.finX===b.finX?0:b.finX-a.finX;return a.fin?-1:1});
   const pos=sorted.findIndex(r=>r.me)+1;
   document.getElementById('cTitle').textContent=MSGS[Math.floor(Math.random()*MSGS.length)];
-  document.getElementById('cEmoji').textContent='🏇';
+  if(sel.img){
+    document.getElementById('cEmoji').innerHTML='<img src="'+sel.img+'" style="width:90px;height:90px;border-radius:50%;object-fit:cover">';
+  } else {
+    document.getElementById('cEmoji').textContent=sel.emoji;
+  }
   document.getElementById('cPos').textContent=pos===1?'1er Lugar!':'Lugar '+pos;
   show('celeb-screen');document.getElementById('race-screen').classList.remove('hidden');
 }
@@ -540,7 +753,7 @@ function spawnConf(){
 }
 
 function removeSelectKeys(){if(window._selectKey){window.removeEventListener('keydown',window._selectKey);window._selectKey=null}}
-document.getElementById('againBtn').onclick=()=>{sndClick();document.querySelectorAll('.confetti').forEach(p=>p.remove());lastT=0;show('select-screen');buildGrid()};
+document.getElementById('againBtn').onclick=()=>{sndClick();document.querySelectorAll('.confetti').forEach(p=>p.remove());lastT=0;show('level-screen');buildLevelGrid()};
 </script>
 </body>
 </html>

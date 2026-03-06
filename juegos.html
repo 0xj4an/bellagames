@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mis Juegos">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mis Juegos</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@400;600;700&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Fredoka',sans-serif;overflow:hidden;background:#87CEEB;user-select:none;-webkit-touch-callout:none}
+  .hub{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#87CEEB 0%,#B5E8F7 40%,#7CB342 40%,#558B2F 100%);overflow-y:auto;padding:20px 0}
+
+  .welcome{font-family:'Bubblegum Sans',cursive;font-size:clamp(1.2rem,3.5vw,2rem);color:#FFD54F;text-shadow:2px 2px 0 #FF8A65;margin-bottom:4px;animation:pulse 2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+  .title{font-family:'Bubblegum Sans',cursive;font-size:clamp(2rem,6vw,4rem);color:#fff;text-shadow:4px 4px 0 #FF6B9D,8px 8px 0 #FF8A65;line-height:1.2;text-align:center;animation:bounce 2s ease-in-out infinite}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+
+  .subtitle{font-family:'Bubblegum Sans',cursive;font-size:clamp(1rem,2.5vw,1.5rem);color:#fff;text-shadow:2px 2px 0 #66BB6A;margin:12px 0 20px}
+
+  .games{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;max-width:600px;width:92%;padding:0 10px}
+  .game-card{position:relative;background:#fff;border-radius:24px;padding:22px 16px;text-align:center;cursor:pointer;border:5px solid transparent;box-shadow:0 8px 25px rgba(0,0,0,.12);transition:all .3s cubic-bezier(.34,1.56,.64,1);text-decoration:none;display:flex;flex-direction:column;align-items:center}
+  .game-card:hover,.game-card.selected{transform:translateY(-8px) scale(1.03);border-color:#FFD54F;box-shadow:0 12px 35px rgba(0,0,0,.2)}
+  .game-card:active{transform:translateY(-2px) scale(.98)}
+  .game-icon{font-size:clamp(3rem,7vw,4.5rem);line-height:1;margin-bottom:8px;display:block}
+  .game-name{font-family:'Bubblegum Sans',cursive;font-size:clamp(1rem,2.5vw,1.4rem);color:#FF6B9D;margin-bottom:4px}
+  .game-desc{font-size:clamp(.75rem,1.8vw,.9rem);color:#888;line-height:1.3}
+  .game-num{position:absolute;top:-10px;left:-10px;width:30px;height:30px;background:#FF6B9D;color:#fff;border-radius:50%;font-family:'Bubblegum Sans',cursive;font-size:1.1rem;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.2)}
+
+  @media(max-width:600px){
+    .games{grid-template-columns:1fr;gap:14px;max-width:320px}
+    .game-card{flex-direction:row;padding:16px 20px;gap:14px;text-align:left}
+    .game-icon{font-size:3rem;margin-bottom:0;flex-shrink:0}
+    .game-info{flex:1}
+    .game-name{font-size:1.2rem}
+  }
+
+  .deco{position:absolute;font-size:3rem;animation:floaty 3s ease-in-out infinite;pointer-events:none}
+  .deco:nth-child(1){top:8%;left:4%;animation-delay:0s}
+  .deco:nth-child(2){top:6%;right:5%;animation-delay:.6s}
+  .deco:nth-child(3){bottom:28%;left:6%;animation-delay:1.1s}
+  .deco:nth-child(4){bottom:24%;right:4%;animation-delay:.3s}
+  .deco:nth-child(5){top:20%;left:20%;animation-delay:.8s}
+  .deco:nth-child(6){top:16%;right:18%;animation-delay:1.4s}
+  @keyframes floaty{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-15px) rotate(3deg)}}
+
+  .player-overlay{position:fixed;inset:0;z-index:50;background:linear-gradient(180deg,#E1BEE7 0%,#F8BBD0 50%,#BBDEFB 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s}
+  .player-overlay.hidden{opacity:0;pointer-events:none}
+  .player-q{font-family:'Bubblegum Sans',cursive;font-size:clamp(1.5rem,4vw,2.5rem);color:#fff;text-shadow:3px 3px 0 #CE93D8;margin-bottom:30px;text-align:center}
+  .player-cards{display:flex;flex-wrap:wrap;gap:20px;justify-content:center;max-width:90vw;max-height:60vh;overflow-y:auto;padding:10px 16px}
+  .player-card{position:relative;background:#fff;border-radius:28px;padding:24px 32px;text-align:center;cursor:pointer;border:5px solid transparent;box-shadow:0 8px 25px rgba(0,0,0,.12);transition:all .3s cubic-bezier(.34,1.56,.64,1);min-width:120px}
+  .player-card:hover,.player-card.sel{transform:translateY(-8px) scale(1.06);border-color:#FFD54F;box-shadow:0 12px 35px rgba(0,0,0,.2)}
+  .player-card:active{transform:translateY(-2px) scale(.98)}
+  .player-emoji{font-size:clamp(3rem,8vw,5rem);display:block;margin-bottom:6px}
+  .player-name{font-family:'Bubblegum Sans',cursive;font-size:clamp(1.2rem,3.5vw,1.8rem);color:#FF6B9D}
+  .add-card{border:4px dashed rgba(255,255,255,.5);background:rgba(255,255,255,.3)}
+  .add-card:hover{border-color:#FFD54F;background:rgba(255,255,255,.5)}
+  .add-card .player-name{color:#CE93D8}
+  .player-remove{position:absolute;top:-10px;right:-10px;width:30px;height:30px;background:#EF5350;color:#fff;border:3px solid #fff;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2);padding:0;line-height:1;font-family:'Fredoka',sans-serif;z-index:2}
+  .player-remove:hover{background:#D32F2F;transform:scale(1.15)}
+  .name-input-wrap{display:flex;flex-direction:column;align-items:center;gap:16px}
+  .name-input{font-family:'Bubblegum Sans',cursive;font-size:clamp(1.5rem,4vw,2.2rem);text-align:center;padding:12px 24px;border:4px solid #FFD54F;border-radius:20px;outline:none;width:80%;max-width:300px;color:#FF6B9D;background:#fff}
+  .name-input::placeholder{color:#ccc}
+  .name-input:focus{border-color:#FF6B9D;box-shadow:0 0 0 4px rgba(255,107,157,.2)}
+  .name-btns{display:flex;gap:14px}
+  .name-confirm-btn{padding:12px 36px;font-family:'Bubblegum Sans',cursive;font-size:1.3rem;color:#fff;background:linear-gradient(135deg,#66BB6A,#4CAF50);border:4px solid #fff;border-radius:35px;cursor:pointer;box-shadow:0 5px 0 #388E3C;transition:all .15s}
+  .name-confirm-btn:hover{transform:translateY(-2px)}
+  .name-confirm-btn:active{transform:translateY(2px);box-shadow:0 2px 0 #388E3C}
+  .name-cancel-btn{padding:12px 28px;font-family:'Bubblegum Sans',cursive;font-size:1.3rem;color:#fff;background:rgba(0,0,0,.3);border:4px solid rgba(255,255,255,.5);border-radius:35px;cursor:pointer;transition:all .15s}
+  .name-cancel-btn:hover{background:rgba(0,0,0,.5)}
+  .name-error{font-family:'Bubblegum Sans',cursive;font-size:1rem;color:#EF5350;text-shadow:1px 1px 0 rgba(0,0,0,.1);min-height:1.4em}
+  .avatar-label{font-family:'Bubblegum Sans',cursive;font-size:1.1rem;color:#CE93D8;text-shadow:1px 1px 0 rgba(0,0,0,.05)}
+  .avatar-grid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:320px}
+  .avatar-opt{width:48px;height:48px;font-size:2rem;line-height:48px;text-align:center;background:#fff;border-radius:50%;cursor:pointer;border:3px solid transparent;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:all .2s}
+  .avatar-opt:hover,.avatar-opt.picked{transform:scale(1.2);border-color:#FFD54F;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+  .confirm-box{background:#fff;border-radius:24px;padding:28px 32px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.2);max-width:320px}
+  .confirm-text{font-family:'Bubblegum Sans',cursive;font-size:clamp(1.2rem,3vw,1.6rem);color:#333;margin-bottom:20px}
+  .confirm-btns{display:flex;gap:14px;justify-content:center}
+  .confirm-yes{padding:10px 30px;font-family:'Bubblegum Sans',cursive;font-size:1.2rem;color:#fff;background:#EF5350;border:3px solid #fff;border-radius:25px;cursor:pointer}
+  .confirm-no{padding:10px 30px;font-family:'Bubblegum Sans',cursive;font-size:1.2rem;color:#fff;background:#66BB6A;border:3px solid #fff;border-radius:25px;cursor:pointer}
+  .change-player{position:fixed;bottom:16px;right:16px;z-index:40;padding:6px 14px;font-family:'Bubblegum Sans',cursive;font-size:.9rem;color:#fff;background:rgba(0,0,0,.25);border:2px solid rgba(255,255,255,.4);border-radius:20px;cursor:pointer;text-decoration:none;backdrop-filter:blur(4px)}
+  .change-player:hover{background:rgba(0,0,0,.4)}
+</style>
+</head>
+<body>
+<div class="player-overlay" id="playerOverlay">
+  <div class="player-q" id="playerQ">Quien va a jugar?</div>
+  <div class="player-cards" id="playerCards"></div>
+</div>
+<div class="hub">
+  <span class="deco">🐎</span><span class="deco">🐕</span><span class="deco">🏇</span><span class="deco">🐈</span><span class="deco">🐇</span><span class="deco">🦊</span>
+
+  <div class="welcome" id="welcomeMsg">Hola!</div>
+  <div class="title" id="hubTitle">Mis Juegos</div>
+  <div class="subtitle" id="subtitleMsg">Elige un juego</div>
+  <button class="change-player" id="changeBtn">Cambiar</button>
+
+  <div class="games">
+    <a href="animalitos.html" class="game-card" id="game1">
+      <span class="game-num">1</span>
+      <span class="game-icon">🐎</span>
+      <div class="game-info"><div class="game-name">Carrera de Animalitos</div>
+      <div class="game-desc">Salta obstaculos con tu animal favorito</div></div>
+    </a>
+    <a href="horserace.html" class="game-card" id="game2">
+      <span class="game-num">2</span>
+      <span class="game-icon">🏇</span>
+      <div class="game-info"><div class="game-name">Hipodromo</div>
+      <div class="game-desc">Carrera de caballos de cuarto de milla</div></div>
+    </a>
+    <a href="letras.html" class="game-card" id="game3">
+      <span class="game-num">3</span>
+      <span class="game-icon">🔤</span>
+      <div class="game-info"><div class="game-name">Letras y Numeros</div>
+      <div class="game-desc">Aprende letras y numeros jugando</div></div>
+    </a>
+    <a href="mates.html" class="game-card" id="game4">
+      <span class="game-num">4</span>
+      <span class="game-icon">➕</span>
+      <div class="game-info"><div class="game-name">Sumas y Restas</div>
+      <div class="game-desc">Aprende a sumar y restar jugando</div></div>
+    </a>
+  </div>
+</div>
+<script>
+// === PLAYER STORAGE ===
+const PLAYER_COLORS=['#FF6B9D','#CE93D8','#4FC3F7','#FFB74D','#66BB6A','#EF5350','#FFD54F','#AB47BC'];
+function getPlayers(){
+  try{const raw=localStorage.getItem('juegosPlayers');return raw?JSON.parse(raw):[];}
+  catch(e){return[];}
+}
+function savePlayers(players){
+  try{localStorage.setItem('juegosPlayers',JSON.stringify(players));}catch(e){}
+}
+function nextColor(players){
+  const used=new Set(players.map(p=>p.color));
+  for(const c of PLAYER_COLORS){if(!used.has(c))return c;}
+  return PLAYER_COLORS[players.length%PLAYER_COLORS.length];
+}
+// === AVATARS ===
+const AVATARS=['👧','👦','🧒','👸','🤴','🦸‍♀️','🦸‍♂️','🧙‍♀️','🐱','🐶','🦊','🐰','🐻','🦁','🐼','🦄','🐵','🐷'];
+
+// === OVERLAY ELEMENTS ===
+const overlay=document.getElementById('playerOverlay');
+const playerQ=document.getElementById('playerQ');
+const playerCards=document.getElementById('playerCards');
+const welcomeMsg=document.getElementById('welcomeMsg');
+let pFocus=0,pMode='select'; // 'select','add','confirm'
+
+// === PICK PLAYER ===
+function pickPlayer(name){
+  sessionStorage.setItem('jugadora',name);
+  overlay.classList.add('hidden');
+  welcomeMsg.textContent='Hola '+name+'!';
+  document.getElementById('hubTitle').textContent='Juegos de '+name;
+  document.title='Juegos de '+name;
+  pMode='select';
+  if(window._pKey){window.removeEventListener('keydown',window._pKey);window._pKey=null;}
+  enableGameKeys();
+}
+
+// === RENDER PLAYER CARDS ===
+function renderPlayerCards(){
+  const players=getPlayers();
+  playerCards.innerHTML='';
+  pMode='select';
+  // If no players exist, go directly to add flow
+  if(!players.length){showAddPlayer();return;}
+  playerQ.textContent='Quien va a jugar?';
+
+  players.forEach(function(p,i){
+    var card=document.createElement('div');
+    card.className='player-card'+(i===pFocus?' sel':'');
+    card.dataset.name=p.name;
+    card.dataset.idx=String(i);
+    card.innerHTML='<span class="player-emoji">'+p.emoji+'</span><span class="player-name">'+p.name+'</span><button class="player-remove" data-name="'+p.name+'">✕</button>';
+    card.querySelector('.player-remove').onclick=function(e){
+      e.stopPropagation();
+      showConfirmRemove(p.name);
+    };
+    card.onclick=function(){pickPlayer(p.name);};
+    playerCards.appendChild(card);
+  });
+
+  // Add card
+  var addCard=document.createElement('div');
+  addCard.className='player-card add-card'+(players.length===pFocus?' sel':'');
+  addCard.dataset.idx=String(players.length);
+  addCard.innerHTML='<span class="player-emoji">➕</span><span class="player-name">Agregar</span>';
+  addCard.onclick=showAddPlayer;
+  playerCards.appendChild(addCard);
+}
+
+// === ADD PLAYER ===
+let selectedAvatar=AVATARS[0];
+
+function showAddPlayer(){
+  pMode='add';
+  selectedAvatar=AVATARS[0];
+  var hasPlayers=getPlayers().length>0;
+  playerQ.textContent='Crea tu jugador!';
+  playerCards.innerHTML=
+    '<div class="name-input-wrap">'+
+    '<input class="name-input" id="nameInput" type="text" maxlength="12" placeholder="Nombre" autocomplete="off" autocapitalize="words">'+
+    '<div class="avatar-label">Elige tu avatar</div>'+
+    '<div class="avatar-grid" id="avatarGrid"></div>'+
+    '<div class="name-error" id="nameError"></div>'+
+    '<div class="name-btns">'+
+    '<button class="name-confirm-btn" id="nameOk">Listo!</button>'+
+    (hasPlayers?'<button class="name-cancel-btn" id="nameCancel">Volver</button>':'')+
+    '</div></div>';
+  // Build avatar grid
+  var grid=document.getElementById('avatarGrid');
+  AVATARS.forEach(function(av,i){
+    var dot=document.createElement('div');
+    dot.className='avatar-opt'+(i===0?' picked':'');
+    dot.textContent=av;
+    dot.onclick=function(){
+      selectedAvatar=av;
+      grid.querySelectorAll('.avatar-opt').forEach(function(d){d.classList.remove('picked');});
+      dot.classList.add('picked');
+    };
+    grid.appendChild(dot);
+  });
+  var inp=document.getElementById('nameInput');
+  setTimeout(function(){inp.focus();},100);
+  document.getElementById('nameOk').onclick=confirmAddPlayer;
+  var cancelBtn=document.getElementById('nameCancel');
+  if(cancelBtn) cancelBtn.onclick=function(){pFocus=0;renderPlayerCards();};
+  inp.onkeydown=function(e){
+    if(e.key==='Enter'){e.preventDefault();confirmAddPlayer();}
+    if(e.key==='Escape'&&hasPlayers){e.preventDefault();pFocus=0;renderPlayerCards();}
+  };
+}
+
+function confirmAddPlayer(){
+  var inp=document.getElementById('nameInput');
+  var name=(inp.value||'').trim();
+  var errEl=document.getElementById('nameError');
+  if(!name){errEl.textContent='Escribe un nombre';inp.focus();return;}
+  // capitalize first letter
+  name=name.charAt(0).toUpperCase()+name.slice(1);
+  var players=getPlayers();
+  if(players.some(function(p){return p.name.toLowerCase()===name.toLowerCase();})){
+    errEl.textContent='Ya existe!';inp.focus();return;
+  }
+  players.push({name:name,emoji:selectedAvatar,color:nextColor(players)});
+  savePlayers(players);
+  // If this is the first player, pick them immediately
+  if(players.length===1){
+    pickPlayer(name);
+  } else {
+    pFocus=0;
+    renderPlayerCards();
+  }
+}
+
+// === REMOVE PLAYER ===
+function showConfirmRemove(name){
+  pMode='confirm';
+  playerQ.textContent='';
+  playerCards.innerHTML=
+    '<div class="confirm-box">'+
+    '<div class="confirm-text">Borrar a '+name+'?</div>'+
+    '<div class="confirm-btns">'+
+    '<button class="confirm-yes" id="confirmYes">Si</button>'+
+    '<button class="confirm-no" id="confirmNo">No</button>'+
+    '</div></div>';
+  document.getElementById('confirmYes').onclick=function(){
+    var players=getPlayers().filter(function(p){return p.name!==name;});
+    savePlayers(players);
+    if(sessionStorage.getItem('jugadora')===name)sessionStorage.removeItem('jugadora');
+    pFocus=0;
+    renderPlayerCards();
+  };
+  document.getElementById('confirmNo').onclick=function(){pFocus=0;renderPlayerCards();};
+}
+
+// === SHOW PLAYER SELECT ===
+function showPlayerSelect(){
+  overlay.classList.remove('hidden');
+  pFocus=0;
+  renderPlayerCards();
+  // keyboard handler
+  if(window._pKey)window.removeEventListener('keydown',window._pKey);
+  window._pKey=function(e){
+    if(pMode==='add')return; // let input handle keys
+    if(pMode==='confirm'){
+      if(e.key==='Enter'||e.key.toUpperCase()==='S'){e.preventDefault();var y=document.getElementById('confirmYes');if(y)y.click();}
+      if(e.key==='Escape'||e.key.toUpperCase()==='N'){e.preventDefault();var n=document.getElementById('confirmNo');if(n)n.click();}
+      return;
+    }
+    // select mode
+    var allCards=playerCards.querySelectorAll('.player-card');
+    var total=allCards.length;
+    if(!total)return;
+    if(e.key==='ArrowRight'||e.key==='ArrowDown'){
+      e.preventDefault();pFocus=(pFocus+1)%total;
+      allCards.forEach(function(c,j){c.classList.toggle('sel',j===pFocus);});
+    }
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp'){
+      e.preventDefault();pFocus=(pFocus-1+total)%total;
+      allCards.forEach(function(c,j){c.classList.toggle('sel',j===pFocus);});
+    }
+    if(e.key==='Enter'){
+      e.preventDefault();
+      var sel=allCards[pFocus];
+      if(sel)sel.click();
+    }
+    // number keys for quick select (1-9 for players)
+    if(e.key>='1'&&e.key<='9'){
+      var idx=parseInt(e.key)-1;
+      if(idx<total-1){// -1 because last is "add" card
+        var p=getPlayers()[idx];
+        if(p)pickPlayer(p.name);
+      }
+    }
+  };
+  window.addEventListener('keydown',window._pKey);
+}
+
+// === CHANGE PLAYER BUTTON ===
+document.getElementById('changeBtn').onclick=function(){
+  window.removeEventListener('keydown',gameKeyHandler);
+  showPlayerSelect();
+};
+
+// === INIT ===
+const saved=sessionStorage.getItem('jugadora');
+if(saved){
+  overlay.classList.add('hidden');
+  welcomeMsg.textContent='Hola '+saved+'!';
+  document.getElementById('hubTitle').textContent='Juegos de '+saved;
+  document.title='Juegos de '+saved;
+} else {
+  showPlayerSelect();
+}
+
+// === GAME CARDS ===
+const cards=document.querySelectorAll('.game-card');
+let focus=0;
+function selectCard(i){cards.forEach(function(c){c.classList.remove('selected')});focus=i;cards[focus].classList.add('selected');}
+selectCard(0);
+
+function enableGameKeys(){
+  window.addEventListener('keydown',gameKeyHandler);
+}
+function gameKeyHandler(e){
+  if(e.key==='1'){window.location.href='animalitos.html';return}
+  if(e.key==='2'){window.location.href='horserace.html';return}
+  if(e.key==='3'){window.location.href='letras.html';return}
+  if(e.key==='4'){window.location.href='mates.html';return}
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();selectCard((focus+1)%cards.length)}
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();selectCard((focus-1+cards.length)%cards.length)}
+  if(e.key==='Enter'){e.preventDefault();cards[focus].click()}
+}
+if(saved) enableGameKeys();
+</script>
+</body>
+</html>

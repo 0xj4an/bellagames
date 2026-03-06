@@ -9,9 +9,9 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Bela y Penu">
+<meta name="apple-mobile-web-app-title" content="Mis Juegos">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Letras y Numeros - Juegos Bela y Penu</title>
+<title>Letras y Numeros - Mis Juegos</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@400;600;700&display=swap');
   *{margin:0;padding:0;box-sizing:border-box}
@@ -37,6 +37,23 @@
   .deco:nth-child(4){bottom:18%;right:5%;animation-delay:.3s}
   @keyframes floaty{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-15px) rotate(3deg)}}
 
+  /* === LEVELS BUTTON (game screen) === */
+  .levels-btn{position:fixed;top:14px;left:14px;z-index:40;padding:8px 18px;font-family:'Bubblegum Sans',cursive;font-size:1.1rem;color:#fff;background:rgba(0,0,0,.3);border:3px solid rgba(255,255,255,.5);border-radius:25px;cursor:pointer;text-decoration:none;transition:all .15s;backdrop-filter:blur(4px)}
+  .levels-btn:hover{background:rgba(0,0,0,.5)}
+
+  /* === LEVEL SCREEN === */
+  #level-screen{background:linear-gradient(180deg,#E1BEE7,#F8BBD0,#BBDEFB)}
+  .level-title{font-family:'Bubblegum Sans',cursive;font-size:clamp(1.8rem,5vw,3rem);color:#fff;text-shadow:3px 3px 0 #CE93D8;margin-bottom:24px}
+  .level-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;max-width:750px;width:92%}
+  @media(max-width:600px){.level-grid{grid-template-columns:repeat(2,1fr);gap:10px}}
+  .level-card{background:#fff;border-radius:22px;padding:18px 10px;text-align:center;cursor:pointer;border:4px solid transparent;box-shadow:0 6px 20px rgba(0,0,0,.12);transition:all .3s cubic-bezier(.34,1.56,.64,1);position:relative}
+  .level-card:hover{transform:translateY(-8px) scale(1.05);border-color:#FFD54F}
+  .level-card.selected{transform:translateY(-8px) scale(1.05);border-color:#FFD54F}
+  .level-card .lemoji{font-size:3rem;display:block;margin-bottom:6px}
+  .level-card .lname{font-family:'Bubblegum Sans',cursive;font-size:1.1rem;color:#FF6B9D}
+  .level-card .ldesc{font-size:.8rem;color:#888;margin-top:4px}
+  .level-card .lnum{position:absolute;top:-8px;left:-8px;width:28px;height:28px;background:#CE93D8;color:#fff;border-radius:50%;font-family:'Bubblegum Sans',cursive;font-size:.95rem;display:flex;align-items:center;justify-content:center}
+
   #game-screen{background:linear-gradient(180deg,#E1BEE7,#F8BBD0,#BBDEFB)}
   .game-area{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;width:92%;max-width:600px}
 
@@ -45,7 +62,9 @@
   @keyframes charPop{0%{transform:scale(0);opacity:0}100%{transform:scale(1);opacity:1}}
   .emoji-display{font-size:clamp(3rem,10vw,5rem);text-align:center;margin:8px 0}
   .emoji-name{font-family:'Bubblegum Sans',cursive;font-size:clamp(1.2rem,3.5vw,1.8rem);color:#fff;text-shadow:2px 2px 0 #CE93D8}
-  .count-emojis{font-size:clamp(2.5rem,7vw,4rem);text-align:center;letter-spacing:8px;margin:8px 0}
+  .count-emojis{font-size:clamp(2.5rem,7vw,4rem);text-align:center;letter-spacing:8px;margin:8px 0;display:flex;flex-wrap:wrap;justify-content:center;gap:6px;align-items:center}
+  .paw-img{width:clamp(2.5rem,6vw,4rem);height:clamp(2.5rem,6vw,4rem);border-radius:50%;object-fit:cover;border:3px solid #FFD54F;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+  .paw-display{width:clamp(4rem,12vw,6rem);height:clamp(4rem,12vw,6rem);border-radius:50%;object-fit:cover;border:4px solid #FFD54F;box-shadow:0 4px 15px rgba(0,0,0,.2)}
 
   .options{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;width:100%;max-width:400px}
   .opt-btn{background:#fff;border:5px solid transparent;border-radius:22px;padding:18px 10px;font-family:'Bubblegum Sans',cursive;font-size:clamp(2rem,6vw,3.5rem);color:#7B1FA2;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.1);transition:all .2s cubic-bezier(.34,1.56,.64,1);text-align:center;line-height:1.1}
@@ -81,7 +100,7 @@
 </style>
 </head>
 <body>
-<a href="juegosbella.html" class="back-btn">Volver</a>
+<a href="juegos.html" class="back-btn">Volver</a>
 
 <div id="title-screen" class="screen">
   <span class="deco">🐾</span><span class="deco">🔤</span><span class="deco">🐕</span><span class="deco">🌟</span>
@@ -92,8 +111,14 @@
   </div>
 </div>
 
+<div id="level-screen" class="screen hidden">
+  <div class="level-title">Elige nivel</div>
+  <div class="level-grid" id="levelGrid"></div>
+</div>
+
 <div id="game-screen" class="screen hidden">
   <div class="hud"><div class="star-count" id="starCount">⭐ 0</div></div>
+  <button class="levels-btn" id="levelsBtn">Niveles</button>
   <div class="game-area" id="gameArea"></div>
 </div>
 
@@ -155,31 +180,15 @@ function speak(text){
 }
 if('speechSynthesis' in window){window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=()=>{cachedVoice=null;pickVoice()}}
 
-// === BACKGROUND MUSIC (gentle music box) ===
-let musicPlaying=false,musicTimer=null;
-const MELODY=[
-  523,587,659,523,0,659,698,784,0,
-  784,698,659,587,0,523,587,659,523,0,
-  440,494,523,587,0,523,494,440,392,0,
-  440,523,494,440,0,392,440,523,0,0,
-];
-const CHIME=[
-  0,0,1047,0,0,0,0,1568,0,
-  0,0,1319,0,0,0,0,1047,0,0,
-  0,0,0,1175,0,0,0,0,784,0,
-  0,1047,0,0,0,0,0,0,0,0,
-];
-let musicStep=0;
-function startMusic(){if(musicPlaying)return;musicPlaying=true;musicStep=0;playMusicStep()}
-function playMusicStep(){
-  if(!musicPlaying||!ac)return;
-  const i=musicStep%MELODY.length;
-  const note=MELODY[i],chime=CHIME[i];
-  if(note>0)tone(note,.3,'sine',.025);
-  if(chime>0)tone(chime,.2,'sine',.012);
-  musicStep++;musicTimer=setTimeout(playMusicStep,300);
+// === BACKGROUND MUSIC (MP3 - "Carefree" Kevin MacLeod, CC BY 4.0) ===
+let musicAudio=null;
+function startMusic(){
+  if(musicAudio)return;
+  musicAudio=new Audio('music/calm.mp3');
+  musicAudio.loop=true;musicAudio.volume=0.18;
+  musicAudio.play().catch(function(){});
 }
-function stopMusic(){musicPlaying=false;if(musicTimer){clearTimeout(musicTimer);musicTimer=null}}
+function stopMusic(){if(musicAudio){musicAudio.pause();musicAudio.currentTime=0;musicAudio=null;}}
 
 // === DATA ===
 const LETTERS=[
@@ -194,6 +203,15 @@ const LETTERS=[
   {l:'Y',emoji:'🦬',name:'Yak'},{l:'Z',emoji:'🦊',name:'Zorro'},
 ];
 const COUNT_EMOJIS=['⭐','❤️','🌸','🦋','🎈'];
+const PAW_PATROL=[
+  {name:'Chase',img:'paw/chase.jpg'},
+  {name:'Marshall',img:'paw/marshall.jpg'},
+  {name:'Skye',img:'paw/skye.jpg'},
+  {name:'Rubble',img:'paw/rubble.jpg'},
+  {name:'Zuma',img:'paw/zuma.jpg'},
+  {name:'Rocky',img:'paw/rocky.jpg'},
+  {name:'Everest',img:'paw/everest.jpg'},
+];
 const WORDS=[
   {word:'GATO',emoji:'🐱',hint:'dice miau'},
   {word:'PERRO',emoji:'🐕',hint:'dice guau'},
@@ -216,6 +234,13 @@ const WORDS=[
   {word:'TRACKER',emoji:'🐾',hint:'perrito explorador',paw:true},
   {word:'EVEREST',emoji:'🐾',hint:'perrita de la nieve',paw:true},
 ];
+const LEVELS=[
+  {name:'Vocales',emoji:'\u{1F170}\uFE0F',desc:'Solo vocales',chars:'AEIOU',nums:false,words:false,opts:3},
+  {name:'Letras',emoji:'\u{1F524}',desc:'Todas las letras',chars:'ABCDEFGHIJKLMNOPQRSTUVWXYZ',nums:false,words:true,opts:4},
+  {name:'Numeros',emoji:'\u{1F522}',desc:'Numeros del 1 al 9',chars:'',nums:true,words:false,opts:4},
+  {name:'Mezcla',emoji:'\u2B50',desc:'Letras y numeros',chars:'ABCDEFGHIJKLMNOPQRSTUVWXYZ',nums:true,words:true,opts:5},
+  {name:'Campeon',emoji:'\u{1F3C6}',desc:'Todo mas dificil',chars:'ABCDEFGHIJKLMNOPQRSTUVWXYZ',nums:true,words:true,opts:6},
+];
 const MSGS_OK=['BIEN!','GENIAL!','SUPER!','BRAVO!','PERFECTO!'];
 const MSGS_RETRY=['Otra vez!','Intenta!','Casi!'];
 
@@ -228,42 +253,98 @@ if(player){
 
 // === STATE ===
 let stars=0,streak=0,currentRound=null,locked=false,focusIdx=0;
+let currentLevel=null,levelFocus=0;
 
-function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));document.getElementById(id).classList.remove('hidden')}
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  const backBtn=document.querySelector('.back-btn');
+  const levelsBtn=document.getElementById('levelsBtn');
+  if(id==='game-screen'){backBtn.style.display='none';levelsBtn.style.display='block';}
+  else{backBtn.style.display='block';levelsBtn.style.display='none';}
+}
 
-function goPlay(){initAudio();sndClick();show('game-screen');startMusic();nextRound()}
+function goPlay(){initAudio();sndClick();show('level-screen');buildLevelGrid();startMusic()}
 document.getElementById('playBtn').onclick=goPlay;
 window._titleKey=e=>{if(e.key==='Enter'){e.preventDefault();goPlay();window.removeEventListener('keydown',window._titleKey)}};
 window.addEventListener('keydown',window._titleKey);
 
+// === LEVEL SCREEN ===
+function buildLevelGrid(){
+  const grid=document.getElementById('levelGrid');
+  const title=document.querySelector('.level-title');
+  title.textContent=player?('Elige nivel, '+player+'!'):'Elige nivel';
+  grid.innerHTML=LEVELS.map((lv,i)=>
+    '<div class="level-card'+(i===levelFocus?' selected':'')+'" data-idx="'+i+'">'+
+    '<span class="lnum">'+(i+1)+'</span>'+
+    '<span class="lemoji">'+lv.emoji+'</span>'+
+    '<span class="lname">'+lv.name+'</span>'+
+    '<span class="ldesc">'+lv.desc+'</span>'+
+    '</div>'
+  ).join('');
+  document.querySelectorAll('.level-card').forEach(c=>{
+    c.onclick=()=>{sndClick();selectLevel(parseInt(c.dataset.idx))};
+  });
+}
+
+function highlightLevel(i){
+  levelFocus=((i%LEVELS.length)+LEVELS.length)%LEVELS.length;
+  document.querySelectorAll('.level-card').forEach((c,j)=>c.classList.toggle('selected',j===levelFocus));
+}
+
+function selectLevel(idx){
+  currentLevel=LEVELS[idx];
+  show('game-screen');
+  nextRound();
+}
+
+// === LEVELS BUTTON (from game back to level select) ===
+document.getElementById('levelsBtn').onclick=()=>{sndClick();stopSpeech();show('level-screen');buildLevelGrid()};
+
 // === ROUND GENERATOR ===
 function nextRound(){
   locked=false;focusIdx=0;stopSpeech();
-  const type=Math.random();
-  if(type<.25) roundFindChar();
-  else if(type<.50) roundAssociate();
-  else if(type<.75) roundType();
+  // Build list of available round types based on current level
+  const lv=currentLevel;
+  const types=[];
+  // roundFindChar and roundType work with both letters and numbers
+  if(lv.chars||lv.nums){types.push('find');types.push('type')}
+  // roundAssociate works with both letters (emoji->initial) and numbers (counting)
+  if(lv.chars||lv.nums)types.push('assoc');
+  // roundCompleteWord only if words enabled
+  if(lv.words)types.push('complete');
+  const pick=types[Math.floor(Math.random()*types.length)];
+  if(pick==='find') roundFindChar();
+  else if(pick==='assoc') roundAssociate();
+  else if(pick==='type') roundType();
   else roundCompleteWord();
   highlightOpt(0);
 }
 
 // --- Round 1: Find the letter/number ---
 function roundFindChar(){
-  const isNum=Math.random()<.4;
+  const lv=currentLevel;
+  const numOpts=lv.opts-1; // number of distractors
+  // decide if this round shows a number or a letter
+  const canLetter=!!lv.chars;
+  const canNum=lv.nums;
+  const isNum=canNum&&(!canLetter||Math.random()<.4);
   let target,distractors;
   if(isNum){
-    target=String(Math.floor(Math.random()*10)+1);
+    target=String(Math.floor(Math.random()*9)+1);
     distractors=[];
-    while(distractors.length<3){
-      const d=String(Math.floor(Math.random()*10)+1);
+    while(distractors.length<numOpts){
+      const d=String(Math.floor(Math.random()*9)+1);
       if(d!==target&&!distractors.includes(d))distractors.push(d);
     }
   } else {
-    const item=LETTERS[Math.floor(Math.random()*LETTERS.length)];
+    const chars=lv.chars;
+    const pool=LETTERS.filter(x=>chars.includes(x.l));
+    const item=pool[Math.floor(Math.random()*pool.length)];
     target=item.l;
     distractors=[];
-    while(distractors.length<3){
-      const d=LETTERS[Math.floor(Math.random()*LETTERS.length)].l;
+    while(distractors.length<numOpts){
+      const d=pool[Math.floor(Math.random()*pool.length)].l;
       if(d!==target&&!distractors.includes(d))distractors.push(d);
     }
   }
@@ -274,14 +355,25 @@ function roundFindChar(){
 
 // --- Round 2: Associate emoji with initial ---
 function roundAssociate(){
-  const isNum=Math.random()<.4;
+  const lv=currentLevel;
+  const numOpts=lv.opts-1;
+  const canLetter=!!lv.chars;
+  const canNum=lv.nums;
+  const isNum=canNum&&(!canLetter||Math.random()<.4);
   if(isNum){
     const n=Math.floor(Math.random()*5)+1;
-    const emo=COUNT_EMOJIS[Math.floor(Math.random()*COUNT_EMOJIS.length)];
-    const display=Array(n).fill(emo).join(' ');
+    const usePaw=Math.random()<0.3;
+    let display;
+    if(usePaw){
+      const pw=PAW_PATROL[Math.floor(Math.random()*PAW_PATROL.length)];
+      display=Array(n).fill('<img class="paw-img" src="'+pw.img+'" alt="'+pw.name+'">').join('');
+    } else {
+      const emo=COUNT_EMOJIS[Math.floor(Math.random()*COUNT_EMOJIS.length)];
+      display=Array(n).fill('<span>'+emo+'</span>').join('');
+    }
     const answer=String(n);
     const distractors=[];
-    while(distractors.length<3){
+    while(distractors.length<numOpts){
       const d=String(Math.floor(Math.random()*8)+1);
       if(d!==answer&&!distractors.includes(d))distractors.push(d);
     }
@@ -289,11 +381,13 @@ function roundAssociate(){
     currentRound={type:'assoc',answer,opts};
     renderAssocNum(display,n,opts);
   } else {
-    const item=LETTERS[Math.floor(Math.random()*LETTERS.length)];
+    const chars=lv.chars;
+    const pool=LETTERS.filter(x=>chars.includes(x.l));
+    const item=pool[Math.floor(Math.random()*pool.length)];
     const answer=item.l;
     const distractors=[];
-    while(distractors.length<3){
-      const d=LETTERS[Math.floor(Math.random()*LETTERS.length)].l;
+    while(distractors.length<numOpts){
+      const d=pool[Math.floor(Math.random()*pool.length)].l;
       if(d!==answer&&!distractors.includes(d))distractors.push(d);
     }
     const opts=shuffle([answer,...distractors]);
@@ -304,21 +398,29 @@ function roundAssociate(){
 
 // --- Round 3: Type the character ---
 function roundType(){
-  const isNum=Math.random()<.4;
+  const lv=currentLevel;
+  const numOpts=lv.opts-1;
+  const canLetter=!!lv.chars;
+  const canNum=lv.nums;
+  const isNum=canNum&&(!canLetter||Math.random()<.4);
   let target;
   if(isNum){
-    target=String(Math.floor(Math.random()*10)+1);
+    target=String(Math.floor(Math.random()*9)+1);
   } else {
-    target=LETTERS[Math.floor(Math.random()*LETTERS.length)].l;
+    const chars=lv.chars;
+    const pool=LETTERS.filter(x=>chars.includes(x.l));
+    target=pool[Math.floor(Math.random()*pool.length)].l;
   }
   // on touch devices show options instead of requiring keyboard
   const isTouch='ontouchstart' in window && !window.matchMedia('(pointer:fine)').matches;
   if(isTouch){
     const distractors=[];
     if(isNum){
-      while(distractors.length<3){const d=String(Math.floor(Math.random()*10)+1);if(d!==target&&!distractors.includes(d))distractors.push(d)}
+      while(distractors.length<numOpts){const d=String(Math.floor(Math.random()*9)+1);if(d!==target&&!distractors.includes(d))distractors.push(d)}
     } else {
-      while(distractors.length<3){const d=LETTERS[Math.floor(Math.random()*LETTERS.length)].l;if(d!==target&&!distractors.includes(d))distractors.push(d)}
+      const chars=lv.chars;
+      const pool=LETTERS.filter(x=>chars.includes(x.l));
+      while(distractors.length<numOpts){const d=pool[Math.floor(Math.random()*pool.length)].l;if(d!==target&&!distractors.includes(d))distractors.push(d)}
     }
     const opts=shuffle([target,...distractors]);
     currentRound={type:'find',answer:target,opts};
@@ -331,13 +433,15 @@ function roundType(){
 
 // --- Round 4: Complete the word (missing letter) ---
 function roundCompleteWord(){
+  const lv=currentLevel;
+  const numOpts=lv.opts-1;
   const item=WORDS[Math.floor(Math.random()*WORDS.length)];
   const word=item.word;
   const pos=Math.floor(Math.random()*word.length);
   const answer=word[pos];
   const ALPHA='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const distractors=[];
-  while(distractors.length<3){
+  while(distractors.length<numOpts){
     const d=ALPHA[Math.floor(Math.random()*26)];
     if(d!==answer&&!distractors.includes(d))distractors.push(d);
   }
@@ -412,9 +516,16 @@ function renderCompleteWord(r){
     }
   }
   const pawBadge=r.paw?'<div class="paw-badge">🐾 Paw Patrol</div>':'';
+  let emojiHtml;
+  if(r.paw){
+    const pw=PAW_PATROL.find(function(p){return p.name.toUpperCase()===r.word.toUpperCase()});
+    emojiHtml=pw?'<img class="paw-display" src="'+pw.img+'" alt="'+pw.name+'">':'<span class="emoji-display">'+r.emoji+'</span>';
+  } else {
+    emojiHtml='<span class="emoji-display">'+r.emoji+'</span>';
+  }
   area.innerHTML=
     '<div class="prompt">Que letra falta?</div>'+
-    '<div class="emoji-display">'+r.emoji+'</div>'+
+    emojiHtml+
     '<div class="word-hint">'+r.hint+pawBadge+'</div>'+
     '<div class="word-display">'+wordHtml+'</div>'+
     '<div class="options" id="opts">'+r.opts.map(function(o,i){return '<button class="opt-btn" data-val="'+o+'" data-idx="'+i+'">'+o+'</button>'}).join('')+'</div>';
@@ -465,39 +576,52 @@ function checkAnswer(val,idx){
   }
 }
 
-// === TYPE MODE KEY HANDLER ===
+// === KEYBOARD HANDLER ===
 window.addEventListener('keydown',e=>{
-  if(locked)return;
-  // game screen navigation
-  const btns=document.querySelectorAll('.opt-btn');
-
-  if(currentRound&&currentRound.type==='type'&&!currentRound.opts){
-    // direct key input mode
-    const key=e.key.toUpperCase();
-    if(key===currentRound.answer){
-      locked=true;sndCorrect();stars++;streak++;
-      document.getElementById('starCount').textContent='⭐ '+stars;
-      showFeedback(MSGS_OK[Math.floor(Math.random()*MSGS_OK.length)],false);
-      if(streak%5===0)spawnConf();
-      // flash the big char green
-      const bc=document.querySelector('.big-char');
-      if(bc)bc.style.color='#66BB6A';
-      setTimeout(nextRound,2200);
-    } else if(key.length===1&&key.match(/[A-Z0-9]/)){
-      sndWrong();streak=0;
-      showFeedback(MSGS_RETRY[Math.floor(Math.random()*MSGS_RETRY.length)],true);
-    }
+  // Level screen navigation
+  if(!document.getElementById('level-screen').classList.contains('hidden')){
+    if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();highlightLevel(levelFocus+1)}
+    else if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();highlightLevel(levelFocus-1)}
+    else if(e.key==='Enter'){e.preventDefault();sndClick();selectLevel(levelFocus)}
+    else if(e.key>='1'&&e.key<='5'){e.preventDefault();sndClick();selectLevel(parseInt(e.key)-1)}
+    else if(e.key==='Escape'){e.preventDefault();show('title-screen')}
     return;
   }
 
-  // arrow navigation for option buttons
-  if(btns.length){
-    if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();highlightOpt(focusIdx+1)}
-    if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();highlightOpt(focusIdx-1)}
-    if(e.key==='Enter'){e.preventDefault();const b=btns[focusIdx];if(b)checkAnswer(b.dataset.val,focusIdx)}
-    // direct letter/number press to select matching option
-    const key=e.key.toUpperCase();
-    btns.forEach((b,i)=>{if(b.dataset.val===key)checkAnswer(key,i)});
+  // Game screen
+  if(!document.getElementById('game-screen').classList.contains('hidden')){
+    if(e.key==='Escape'){e.preventDefault();sndClick();stopSpeech();show('level-screen');buildLevelGrid();return}
+    if(locked)return;
+    const btns=document.querySelectorAll('.opt-btn');
+
+    if(currentRound&&currentRound.type==='type'&&!currentRound.opts){
+      // direct key input mode
+      const key=e.key.toUpperCase();
+      if(key===currentRound.answer){
+        locked=true;sndCorrect();stars++;streak++;
+        document.getElementById('starCount').textContent='⭐ '+stars;
+        showFeedback(MSGS_OK[Math.floor(Math.random()*MSGS_OK.length)],false);
+        if(streak%5===0)spawnConf();
+        const bc=document.querySelector('.big-char');
+        if(bc)bc.style.color='#66BB6A';
+        setTimeout(nextRound,2200);
+      } else if(key.length===1&&key.match(/[A-Z0-9]/)){
+        sndWrong();streak=0;
+        showFeedback(MSGS_RETRY[Math.floor(Math.random()*MSGS_RETRY.length)],true);
+      }
+      return;
+    }
+
+    // arrow navigation for option buttons
+    if(btns.length){
+      if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();highlightOpt(focusIdx+1)}
+      if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();highlightOpt(focusIdx-1)}
+      if(e.key==='Enter'){e.preventDefault();const b=btns[focusIdx];if(b)checkAnswer(b.dataset.val,focusIdx)}
+      // direct letter/number press to select matching option
+      const key=e.key.toUpperCase();
+      btns.forEach((b,i)=>{if(b.dataset.val===key)checkAnswer(key,i)});
+    }
+    return;
   }
 });
 
