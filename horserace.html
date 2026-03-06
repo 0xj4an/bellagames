@@ -353,7 +353,8 @@ function buildGrid(){
   HORSES.forEach((h,i)=>{
     const c=document.createElement('div');c.className='card';
     const preview=h.img?`<img src="${h.img}" class="paw-img">`:`${h.emoji}`;
-    c.innerHTML=`<div class="num">${i+1}</div><div class="preview">${preview}</div><div class="name">${h.name}</div><div class="color-dot" style="background:${h.color}"></div>`;
+    const key=i<9?String(i+1):i===9?'0':String.fromCharCode(65+i-10);
+    c.innerHTML=`<div class="num">${key}</div><div class="preview">${preview}</div><div class="name">${h.name}</div><div class="color-dot" style="background:${h.color}"></div>`;
     if(h.custom){
       const rm=document.createElement('button');rm.className='remove-btn';rm.textContent='✕';
       rm.onclick=function(e){e.stopPropagation();sndClick();showRemoveHorse(h.name);};
@@ -372,7 +373,10 @@ function buildGrid(){
   window._selectKey=e=>{
     const total=g.children.length;
     const n=parseInt(e.key);
-    if(n>=1&&n<=HORSES.length){sndClick();sel=HORSES[n-1];removeSelectKeys();show('race-screen');countdown();return}
+    if(n>=1&&n<=9&&n<=HORSES.length){sndClick();sel=HORSES[n-1];removeSelectKeys();show('race-screen');countdown();return}
+    if(e.key==='0'&&HORSES.length>=10){sndClick();sel=HORSES[9];removeSelectKeys();show('race-screen');countdown();return}
+    const letterIdx=e.key.toUpperCase().charCodeAt(0)-65+10;
+    if(letterIdx>=10&&letterIdx<HORSES.length){sndClick();sel=HORSES[letterIdx];removeSelectKeys();show('race-screen');countdown();return}
     if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();highlightCard(gridFocus+1)}
     if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();highlightCard(gridFocus-1)}
     if(e.key==='Enter'){
