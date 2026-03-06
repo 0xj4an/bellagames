@@ -1,7 +1,7 @@
 {
-  "name": "Juegos Bella",
-  "short_name": "Juegos Bella",
-  "description": "Coleccion de juegos para Bella",
+  "name": "Juegos Bella y Penu",
+  "short_name": "Bella y Penu",
+  "description": "Coleccion de juegos para Bella y Penu",
   "start_url": "/juegosbella.html",
   "display": "standalone",
   "background_color": "#87CEEB",

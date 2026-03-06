@@ -9,9 +9,9 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Juegos Bella">
+<meta name="apple-mobile-web-app-title" content="Bella y Penu">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Letras y Numeros - Juego Bella</title>
+<title>Letras y Numeros - Juegos Bella y Penu</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@400;600;700&display=swap');
   *{margin:0;padding:0;box-sizing:border-box}
@@ -58,6 +58,12 @@
 
   .type-hint{font-family:'Bubblegum Sans',cursive;font-size:clamp(1.1rem,3vw,1.6rem);color:rgba(255,255,255,.8);text-align:center;margin-top:10px}
 
+  .word-display{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap;margin:8px 0}
+  .word-letter{font-family:'Bubblegum Sans',cursive;font-size:clamp(2.5rem,8vw,4.5rem);color:#fff;text-shadow:3px 3px 0 #CE93D8;line-height:1;min-width:clamp(2rem,6vw,3.5rem);text-align:center}
+  .word-gap{border-bottom:5px solid #FFD54F;color:#FFD54F;animation:pulse 1s ease-in-out infinite}
+  .word-hint{font-family:'Bubblegum Sans',cursive;font-size:clamp(.9rem,2.2vw,1.2rem);color:rgba(255,255,255,.7);text-align:center}
+  .paw-badge{font-size:clamp(.75rem,1.8vw,.95rem);background:rgba(255,255,255,.25);padding:3px 10px;border-radius:12px;margin-top:6px;display:inline-block;color:#fff}
+
   .hud{position:fixed;top:14px;right:14px;z-index:20;display:flex;gap:10px;align-items:center}
   .star-count{background:rgba(255,255,255,.9);border-radius:20px;padding:6px 16px;font-family:'Bubblegum Sans',cursive;font-size:1.2rem;color:#FFB300;box-shadow:0 3px 10px rgba(0,0,0,.1)}
 
@@ -78,9 +84,9 @@
 <a href="juegosbella.html" class="back-btn">Volver</a>
 
 <div id="title-screen" class="screen">
-  <span class="deco">🔤</span><span class="deco">🔢</span><span class="deco">⭐</span><span class="deco">🌟</span>
+  <span class="deco">🐾</span><span class="deco">🔤</span><span class="deco">🐕</span><span class="deco">🌟</span>
   <div class="title-wrap">
-    <div class="welcome">Bienvenida Bella!</div>
+    <div class="welcome" id="welcomeMsg">Hola!</div>
     <div class="title">Letras y<br>Numeros</div>
     <button class="play-btn" id="playBtn">JUGAR</button>
   </div>
@@ -196,8 +202,37 @@ const LETTERS=[
   {l:'Y',emoji:'🦬',name:'Yak'},{l:'Z',emoji:'🦊',name:'Zorro'},
 ];
 const COUNT_EMOJIS=['⭐','❤️','🌸','🦋','🎈'];
+const WORDS=[
+  {word:'GATO',emoji:'🐱',hint:'dice miau'},
+  {word:'PERRO',emoji:'🐕',hint:'dice guau'},
+  {word:'SOL',emoji:'☀️',hint:'brilla en el cielo'},
+  {word:'LUNA',emoji:'🌙',hint:'sale de noche'},
+  {word:'CASA',emoji:'🏠',hint:'donde vivimos'},
+  {word:'PATO',emoji:'🦆',hint:'dice cuac'},
+  {word:'RANA',emoji:'🐸',hint:'salta mucho'},
+  {word:'OSO',emoji:'🐻',hint:'grande y peludo'},
+  {word:'VACA',emoji:'🐄',hint:'da leche'},
+  {word:'FLOR',emoji:'🌸',hint:'crece en el jardin'},
+  {word:'LEON',emoji:'🦁',hint:'el rey de la selva'},
+  {word:'MONO',emoji:'🐒',hint:'vive en los arboles'},
+  {word:'CHASE',emoji:'🐾',hint:'perrito policia',paw:true},
+  {word:'SKYE',emoji:'🐾',hint:'perrita que vuela',paw:true},
+  {word:'ROCKY',emoji:'🐾',hint:'perrito que recicla',paw:true},
+  {word:'ZUMA',emoji:'🐾',hint:'perrito del agua',paw:true},
+  {word:'RUBBLE',emoji:'🐾',hint:'perrito constructor',paw:true},
+  {word:'MARSHALL',emoji:'🐾',hint:'perrito bombero',paw:true},
+  {word:'TRACKER',emoji:'🐾',hint:'perrito explorador',paw:true},
+  {word:'EVEREST',emoji:'🐾',hint:'perrita de la nieve',paw:true},
+];
 const MSGS_OK=['BIEN!','GENIAL!','SUPER!','BRAVO!','PERFECTO!'];
 const MSGS_RETRY=['Otra vez!','Intenta!','Casi!'];
+
+// === PLAYER ===
+const player=sessionStorage.getItem('jugadora')||'';
+if(player){
+  const w=document.getElementById('welcomeMsg');
+  if(w)w.textContent='Hola '+player+'!';
+}
 
 // === STATE ===
 let stars=0,streak=0,currentRound=null,locked=false,focusIdx=0;
@@ -213,9 +248,10 @@ window.addEventListener('keydown',window._titleKey);
 function nextRound(){
   locked=false;focusIdx=0;
   const type=Math.random();
-  if(type<.35) roundFindChar();
-  else if(type<.65) roundAssociate();
-  else roundType();
+  if(type<.25) roundFindChar();
+  else if(type<.50) roundAssociate();
+  else if(type<.75) roundType();
+  else roundCompleteWord();
   highlightOpt(0);
 }
 
@@ -301,6 +337,23 @@ function roundType(){
   }
 }
 
+// --- Round 4: Complete the word (missing letter) ---
+function roundCompleteWord(){
+  const item=WORDS[Math.floor(Math.random()*WORDS.length)];
+  const word=item.word;
+  const pos=Math.floor(Math.random()*word.length);
+  const answer=word[pos];
+  const ALPHA='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const distractors=[];
+  while(distractors.length<3){
+    const d=ALPHA[Math.floor(Math.random()*26)];
+    if(d!==answer&&!distractors.includes(d))distractors.push(d);
+  }
+  const opts=shuffle([answer,...distractors]);
+  currentRound={type:'complete',answer,opts,word,pos,emoji:item.emoji,hint:item.hint,paw:item.paw};
+  renderCompleteWord(currentRound);
+}
+
 // === RENDERERS ===
 function renderFind(target,opts,isNum){
   const area=document.getElementById('gameArea');
@@ -354,6 +407,28 @@ function renderType(target,opts,touchMode){
     `;
   }
   speak(isNum?'Presiona el numero '+target:'Presiona la letra '+target);
+}
+
+function renderCompleteWord(r){
+  const area=document.getElementById('gameArea');
+  let wordHtml='';
+  for(let i=0;i<r.word.length;i++){
+    if(i===r.pos){
+      wordHtml+='<span class="word-letter word-gap">_</span>';
+    } else {
+      wordHtml+='<span class="word-letter">'+r.word[i]+'</span>';
+    }
+  }
+  const pawBadge=r.paw?'<div class="paw-badge">🐾 Paw Patrol</div>':'';
+  area.innerHTML=
+    '<div class="prompt">Que letra falta?</div>'+
+    '<div class="emoji-display">'+r.emoji+'</div>'+
+    '<div class="word-hint">'+r.hint+pawBadge+'</div>'+
+    '<div class="word-display">'+wordHtml+'</div>'+
+    '<div class="options" id="opts">'+r.opts.map(function(o,i){return '<button class="opt-btn" data-val="'+o+'" data-idx="'+i+'">'+o+'</button>'}).join('')+'</div>';
+  bindOpts();
+  const name=player?', '+player:'';
+  speak('Que letra falta en '+r.word+'?'+name);
 }
 
 // === OPTION BINDING ===
@@ -445,7 +520,8 @@ function showFeedback(msg,isRetry){
   fb.classList.remove('hidden');
   txt.style.animation='none';void txt.offsetWidth;txt.style.animation='fbPop .6s cubic-bezier(.34,1.56,.64,1) forwards';
   fbTimer=setTimeout(()=>{fb.classList.add('hidden');fbTimer=null},isRetry?700:900);
-  speak(isRetry?'Intenta otra vez':msg);
+  const name=player?', '+player:'';
+  speak(isRetry?'Intenta otra vez'+name:msg.replace('!','')+name);
 }
 
 function spawnStars(btn){
