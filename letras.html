@@ -109,51 +109,46 @@ function sndWrong(){tone(300,.15,'sine',.06);setTimeout(()=>tone(250,.15,'sine',
 function sndClick(){tone(500,.04,'sine',.08)}
 function sndCeleb(){[523,659,784,1047,784,1047,1319].forEach((n,i)=>setTimeout(()=>tone(n,.2,'sine',.07),i*120))}
 
-// === SPEECH (best available Latin American voice) ===
-let cachedVoice=null;
+// === SPEECH (Amazon Polly via proxy + Web Speech API fallback) ===
+let ttsOk=true,currentTTSAudio=null,speechGen=0,cachedVoice=null;
 function scoreVoice(v){
-  let s=0;
-  const name=(v.name||'').toLowerCase(),lang=v.lang||'',uri=(v.voiceURI||'').toLowerCase();
+  let s=0;const name=(v.name||'').toLowerCase(),lang=v.lang||'',uri=(v.voiceURI||'').toLowerCase();
   if(!lang.startsWith('es'))return -1;
-  // quality tiers
-  if(/online.*natural|natural.*online/i.test(name))s+=200;
-  else if(/premium/i.test(name)||/premium/i.test(uri))s+=180;
-  else if(/enhanced/i.test(name)||/enhanced/i.test(uri))s+=160;
-  else if(/siri/i.test(name)||/ttsbundle/i.test(uri))s+=150;
-  else if(/neural|natural/i.test(name))s+=140;
-  else if(/google/i.test(name))s+=40;
+  if(/premium|enhanced|neural|natural|siri|online/i.test(name)||/ttsbundle/i.test(uri))s+=100;
   if(/compact/i.test(uri))s-=30;
-  // region: Latin American > Spain
-  if(/es[-_](MX|US|419)/i.test(lang))s+=60;
-  else if(/es[-_](CO|AR|CL|PE|VE)/i.test(lang))s+=50;
-  else if(/es[-_]ES/i.test(lang))s+=5;
-  else s+=20;
-  // female voice preferred
-  if(/female|paulina|penelope|elena|karla|angelica|jimena|monica|sofia|dalia|paloma|ximena|salome|isabela|soledad|francesca|marisol|mia|lupe|lucia|alba/i.test(name))s+=30;
+  if(/es[-_](MX|US|419)/i.test(lang))s+=60;else if(/es[-_](CO|AR|CL|PE|VE)/i.test(lang))s+=50;else if(/es[-_]ES/i.test(lang))s+=5;else s+=20;
+  if(/female|paulina|penelope|elena|karla|angelica|jimena|monica|sofia|dalia|paloma|mia|lupe|lucia/i.test(name))s+=30;
   return s;
 }
 function pickVoice(){
   if(cachedVoice)return cachedVoice;
-  const voices=window.speechSynthesis.getVoices();
-  if(!voices.length)return null;
-  let best=null,bestScore=-1;
-  for(const v of voices){const s=scoreVoice(v);if(s>bestScore){bestScore=s;best=v}}
-  if(best){cachedVoice=best;console.log('Voice selected:',best.name,best.lang)}
-  return cachedVoice;
+  const voices=window.speechSynthesis.getVoices();if(!voices.length)return null;
+  let best=null,bs=-1;for(const v of voices){const s=scoreVoice(v);if(s>bs){bs=s;best=v}}
+  if(best)cachedVoice=best;return cachedVoice;
 }
-function speak(text){
+function speakLocal(text){
   if(!('speechSynthesis' in window))return;
   window.speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang='es-MX';u.rate=.85;u.pitch=1.1;
-  const v=pickVoice();
-  if(v){u.voice=v;if(/premium|enhanced|neural|siri|online.*natural/i.test(v.name)||/ttsbundle/i.test(v.voiceURI||'')){u.pitch=1.05;u.rate=.9}}
+  const u=new SpeechSynthesisUtterance(text);u.lang='es-MX';u.rate=.85;u.pitch=1.1;
+  const v=pickVoice();if(v){u.voice=v;if(/premium|enhanced|neural|siri/i.test(v.name)){u.pitch=1.05;u.rate=.9}}
   window.speechSynthesis.speak(u);
 }
-if('speechSynthesis' in window){
-  window.speechSynthesis.getVoices();
-  window.speechSynthesis.onvoiceschanged=()=>{cachedVoice=null;pickVoice()};
+function speak(text){
+  const gen=++speechGen;
+  if(currentTTSAudio){currentTTSAudio.pause();currentTTSAudio=null}
+  if('speechSynthesis' in window)window.speechSynthesis.cancel();
+  if(ttsOk){
+    fetch('/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({voice:'Mia',text:text,service:'polly'})})
+    .then(r=>r.json()).then(d=>{
+      if(gen!==speechGen)return;
+      if(d.success&&d.speak_url){currentTTSAudio=new Audio(d.speak_url);currentTTSAudio.play()}
+      else throw 0;
+    }).catch(()=>{if(gen===speechGen){ttsOk=false;speakLocal(text)}});
+    return;
+  }
+  speakLocal(text);
 }
+if('speechSynthesis' in window){window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=()=>{cachedVoice=null;pickVoice()}}
 
 // === BACKGROUND MUSIC (gentle music box) ===
 let musicPlaying=false,musicTimer=null;

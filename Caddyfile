@@ -1,8 +1,22 @@
 :{$PORT}
 
-root * /app
-file_server
+# TTS proxy (Streamlabs Amazon Polly - natural voice)
+handle /tts {
+	rewrite * /polly/speak
+	reverse_proxy streamlabs.com:443 {
+		transport http {
+			tls
+			tls_server_name streamlabs.com
+		}
+		header_up Host streamlabs.com
+		header_up Referer "https://streamlabs.com"
+	}
+}
 
-header *.html Cache-Control "no-cache, no-store, must-revalidate"
-header *.html Pragma "no-cache"
-header *.html Expires "0"
+handle {
+	root * /app
+	file_server
+	header *.html Cache-Control "no-cache, no-store, must-revalidate"
+	header *.html Pragma "no-cache"
+	header *.html Expires "0"
+}

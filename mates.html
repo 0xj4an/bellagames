@@ -67,6 +67,7 @@
   .emoji-row{display:flex;flex-wrap:wrap;justify-content:center;gap:4px;max-width:90vw}
   .emoji-item{font-size:clamp(2rem,5vw,3.5rem);animation:emojiPop .3s cubic-bezier(.34,1.56,.64,1) both;transition:opacity .6s,transform .6s}
   .emoji-item.faded{opacity:.15;transform:scale(.7);text-decoration:line-through}
+  .paw-img{width:clamp(2.5rem,6vw,4rem);height:clamp(2.5rem,6vw,4rem);border-radius:50%;object-fit:cover;border:3px solid #FFD54F;box-shadow:0 2px 8px rgba(0,0,0,.15)}
   @keyframes emojiPop{0%{transform:scale(0);opacity:0}100%{transform:scale(1);opacity:1}}
   .emoji-group{display:flex;flex-direction:column;align-items:center;gap:2px}
   .emoji-group .emoji-row{margin-bottom:2px}
@@ -144,48 +145,46 @@ function sndWrong(){tone(300,.15,'sine',.06);setTimeout(()=>tone(250,.15,'sine',
 function sndClick(){tone(500,.04,'sine',.08)}
 function sndCeleb(){[523,659,784,1047,784,1047,1319].forEach((n,i)=>setTimeout(()=>tone(n,.2,'sine',.07),i*120))}
 
-// === SPEECH (best available Latin American voice) ===
-let cachedVoice=null;
+// === SPEECH (Amazon Polly via proxy + Web Speech API fallback) ===
+let ttsOk=true,currentTTSAudio=null,speechGen=0,cachedVoice=null;
 function scoreVoice(v){
-  let s=0;
-  const name=(v.name||'').toLowerCase(),lang=v.lang||'',uri=(v.voiceURI||'').toLowerCase();
+  let s=0;const name=(v.name||'').toLowerCase(),lang=v.lang||'',uri=(v.voiceURI||'').toLowerCase();
   if(!lang.startsWith('es'))return -1;
-  if(/online.*natural|natural.*online/i.test(name))s+=200;
-  else if(/premium/i.test(name)||/premium/i.test(uri))s+=180;
-  else if(/enhanced/i.test(name)||/enhanced/i.test(uri))s+=160;
-  else if(/siri/i.test(name)||/ttsbundle/i.test(uri))s+=150;
-  else if(/neural|natural/i.test(name))s+=140;
-  else if(/google/i.test(name))s+=40;
+  if(/premium|enhanced|neural|natural|siri|online/i.test(name)||/ttsbundle/i.test(uri))s+=100;
   if(/compact/i.test(uri))s-=30;
-  if(/es[-_](MX|US|419)/i.test(lang))s+=60;
-  else if(/es[-_](CO|AR|CL|PE|VE)/i.test(lang))s+=50;
-  else if(/es[-_]ES/i.test(lang))s+=5;
-  else s+=20;
-  if(/female|paulina|penelope|elena|karla|angelica|jimena|monica|sofia|dalia|paloma|ximena|salome|isabela|soledad|francesca|marisol|mia|lupe|lucia|alba/i.test(name))s+=30;
+  if(/es[-_](MX|US|419)/i.test(lang))s+=60;else if(/es[-_](CO|AR|CL|PE|VE)/i.test(lang))s+=50;else if(/es[-_]ES/i.test(lang))s+=5;else s+=20;
+  if(/female|paulina|penelope|elena|karla|angelica|jimena|monica|sofia|dalia|paloma|mia|lupe|lucia/i.test(name))s+=30;
   return s;
 }
 function pickVoice(){
   if(cachedVoice)return cachedVoice;
-  const voices=window.speechSynthesis.getVoices();
-  if(!voices.length)return null;
-  let best=null,bestScore=-1;
-  for(const v of voices){const s=scoreVoice(v);if(s>bestScore){bestScore=s;best=v}}
-  if(best){cachedVoice=best;console.log('Voice selected:',best.name,best.lang)}
-  return cachedVoice;
+  const voices=window.speechSynthesis.getVoices();if(!voices.length)return null;
+  let best=null,bs=-1;for(const v of voices){const s=scoreVoice(v);if(s>bs){bs=s;best=v}}
+  if(best)cachedVoice=best;return cachedVoice;
 }
-function speak(text){
+function speakLocal(text){
   if(!('speechSynthesis' in window))return;
   window.speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang='es-MX';u.rate=.85;u.pitch=1.1;
-  const v=pickVoice();
-  if(v){u.voice=v;if(/premium|enhanced|neural|siri|online.*natural/i.test(v.name)||/ttsbundle/i.test(v.voiceURI||'')){u.pitch=1.05;u.rate=.9}}
+  const u=new SpeechSynthesisUtterance(text);u.lang='es-MX';u.rate=.85;u.pitch=1.1;
+  const v=pickVoice();if(v){u.voice=v;if(/premium|enhanced|neural|siri/i.test(v.name)){u.pitch=1.05;u.rate=.9}}
   window.speechSynthesis.speak(u);
 }
-if('speechSynthesis' in window){
-  window.speechSynthesis.getVoices();
-  window.speechSynthesis.onvoiceschanged=()=>{cachedVoice=null;pickVoice()};
+function speak(text){
+  const gen=++speechGen;
+  if(currentTTSAudio){currentTTSAudio.pause();currentTTSAudio=null}
+  if('speechSynthesis' in window)window.speechSynthesis.cancel();
+  if(ttsOk){
+    fetch('/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({voice:'Mia',text:text,service:'polly'})})
+    .then(r=>r.json()).then(d=>{
+      if(gen!==speechGen)return;
+      if(d.success&&d.speak_url){currentTTSAudio=new Audio(d.speak_url);currentTTSAudio.play()}
+      else throw 0;
+    }).catch(()=>{if(gen===speechGen){ttsOk=false;speakLocal(text)}});
+    return;
+  }
+  speakLocal(text);
 }
+if('speechSynthesis' in window){window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=()=>{cachedVoice=null;pickVoice()}}
 
 // === BACKGROUND MUSIC (happy xylophone) ===
 let musicPlaying=false,musicTimer=null;
@@ -221,14 +220,13 @@ const ANIMAL_PLURAL={
 };
 
 const PAW_PATROL=[
-  {name:'Chase',emoji:'🚔',s:'patrulla',p:'patrullas'},
-  {name:'Marshall',emoji:'🚒',s:'camion',p:'camiones'},
-  {name:'Skye',emoji:'🚁',s:'helicoptero',p:'helicopteros'},
-  {name:'Rubble',emoji:'🏗️',s:'excavadora',p:'excavadoras'},
-  {name:'Zuma',emoji:'🚤',s:'lancha',p:'lanchas'},
-  {name:'Rocky',emoji:'🐾',s:'huellita',p:'huellitas'},
-  {name:'Everest',emoji:'❄️',s:'copo de nieve',p:'copos de nieve'},
-  {name:'Tracker',emoji:'🌴',s:'palmera',p:'palmeras'},
+  {name:'Chase',img:'paw/chase.jpg',s:'cachorrito',p:'cachorritos'},
+  {name:'Marshall',img:'paw/marshall.jpg',s:'cachorrito',p:'cachorritos'},
+  {name:'Skye',img:'paw/skye.jpg',s:'cachorrito',p:'cachorritos'},
+  {name:'Rubble',img:'paw/rubble.jpg',s:'cachorrito',p:'cachorritos'},
+  {name:'Zuma',img:'paw/zuma.jpg',s:'cachorrito',p:'cachorritos'},
+  {name:'Rocky',img:'paw/rocky.jpg',s:'cachorrito',p:'cachorritos'},
+  {name:'Everest',img:'paw/everest.jpg',s:'cachorrito',p:'cachorritos'},
 ];
 
 const MSGS_OK=['BIEN!','GENIAL!','SUPER!','BRAVO!','PERFECTO!'];
@@ -362,7 +360,7 @@ function renderRound(){
   const area=document.getElementById('gameArea');
   // use Paw Patrol character if selected, otherwise level default
   const pw=r.pawChar;
-  const emoji=pw?pw.emoji:lv.emoji;
+  const emoji=pw?pw.img:lv.emoji;
   const nameS=pw?pw.s:(ANIMAL_SINGULAR[lv.emoji]||'estrellita');
   const nameP=pw?pw.p:(ANIMAL_PLURAL[lv.emoji]||'estrellitas');
   const na=r.a===1?('un '+nameS):(NUMS[r.a]+' '+nameP);
@@ -429,61 +427,32 @@ function renderRound(){
   }
 }
 
+function itemHTML(emoji,cls,delay){
+  if(emoji.startsWith('paw/'))return `<img class="emoji-item paw-img${cls}" src="${emoji}" alt="" style="animation-delay:${delay}s">`;
+  return `<span class="emoji-item${cls}" style="animation-delay:${delay}s">${emoji}</span>`;
+}
 function renderEmojiGroup(emoji,count,faded,lv){
-  // For Campeones (level 5) with numbers > 10, group emojis in rows of 5
+  const fc=faded?' faded':'';
   if(lv.name==='Campeones'&&count>10){
-    let html='';
-    let remaining=count;
-    let idx=0;
-    while(remaining>0){
-      const rowCount=Math.min(remaining,5);
-      html+='<div class="emoji-row">';
-      for(let j=0;j<rowCount;j++){
-        html+=`<span class="emoji-item${faded?' faded':''}" style="animation-delay:${idx*0.08}s">${emoji}</span>`;
-        idx++;
-      }
-      html+='</div>';
-      remaining-=rowCount;
-    }
+    let html='',idx=0,rem=count;
+    while(rem>0){const rc=Math.min(rem,5);html+='<div class="emoji-row">';for(let j=0;j<rc;j++){html+=itemHTML(emoji,fc,idx*0.08);idx++}html+='</div>';rem-=rc}
     return html;
   }
-  // Normal: single row
   let html='<div class="emoji-row">';
-  for(let i=0;i<count;i++){
-    html+=`<span class="emoji-item${faded?' faded':''}" style="animation-delay:${i*0.08}s">${emoji}</span>`;
-  }
-  html+='</div>';
-  return html;
+  for(let i=0;i<count;i++)html+=itemHTML(emoji,fc,i*0.08);
+  html+='</div>';return html;
 }
 
 function renderSubtractGroup(emoji,total,remove,lv){
   const keep=total-remove;
-  // For Campeones with large numbers, group in rows of 5
   if(lv.name==='Campeones'&&total>10){
-    let html='';
-    let idx=0;
-    let remaining=total;
-    while(remaining>0){
-      const rowCount=Math.min(remaining,5);
-      html+='<div class="emoji-row">';
-      for(let j=0;j<rowCount;j++){
-        const isFaded=idx>=keep;
-        html+=`<span class="emoji-item${isFaded?' faded':''}" style="animation-delay:${idx*0.08}s">${emoji}</span>`;
-        idx++;
-      }
-      html+='</div>';
-      remaining-=rowCount;
-    }
+    let html='',idx=0,rem=total;
+    while(rem>0){const rc=Math.min(rem,5);html+='<div class="emoji-row">';for(let j=0;j<rc;j++){html+=itemHTML(emoji,idx>=keep?' faded':'',idx*0.08);idx++}html+='</div>';rem-=rc}
     return html;
   }
-  // Normal: single row
   let html='<div class="emoji-row">';
-  for(let i=0;i<total;i++){
-    const isFaded=i>=keep;
-    html+=`<span class="emoji-item${isFaded?' faded':''}" style="animation-delay:${i*0.08}s">${emoji}</span>`;
-  }
-  html+='</div>';
-  return html;
+  for(let i=0;i<total;i++)html+=itemHTML(emoji,i>=keep?' faded':'',i*0.08);
+  html+='</div>';return html;
 }
 
 // === OPTION BINDING ===
