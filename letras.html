@@ -18,24 +18,9 @@
   body{font-family:'Fredoka',sans-serif;overflow:hidden;background:#E8D5F5;user-select:none;touch-action:none;-webkit-touch-callout:none}
   .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s;z-index:10}
   .screen.hidden{opacity:0;pointer-events:none}
-
-  #title-screen{background:linear-gradient(180deg,#E1BEE7 0%,#F8BBD0 50%,#BBDEFB 100%)}
-  .title-wrap{text-align:center;animation:bounce 2s ease-in-out infinite}
-  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
-  .welcome{font-family:'Bubblegum Sans',cursive;font-size:clamp(1.2rem,3.5vw,1.8rem);color:#FFD54F;text-shadow:2px 2px 0 #CE93D8;margin-bottom:6px;animation:pulse 2s ease-in-out infinite}
-  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-  .title{font-family:'Bubblegum Sans',cursive;font-size:clamp(2.5rem,7vw,4.5rem);color:#fff;text-shadow:4px 4px 0 #CE93D8,8px 8px 0 #FF6B9D;line-height:1.2}
-  .play-btn{margin-top:24px;padding:14px 44px;font-family:'Bubblegum Sans',cursive;font-size:clamp(1.3rem,4vw,2rem);color:#fff;background:linear-gradient(135deg,#CE93D8,#FF6B9D);border:4px solid #fff;border-radius:50px;cursor:pointer;box-shadow:0 6px 0 #AB47BC;transition:all .15s}
-  .play-btn:hover{transform:translateY(-2px)}.play-btn:active{transform:translateY(3px);box-shadow:0 3px 0 #AB47BC}
   .back-btn{position:fixed;top:14px;left:14px;z-index:40;padding:8px 18px;font-family:'Bubblegum Sans',cursive;font-size:1.1rem;color:#fff;background:rgba(0,0,0,.3);border:3px solid rgba(255,255,255,.5);border-radius:25px;cursor:pointer;text-decoration:none;transition:all .15s;backdrop-filter:blur(4px)}
   .back-btn:hover{background:rgba(0,0,0,.5)}
 
-  .deco{position:absolute;font-size:3.5rem;animation:floaty 3s ease-in-out infinite;pointer-events:none}
-  .deco:nth-child(1){top:10%;left:5%;animation-delay:0s}
-  .deco:nth-child(2){top:8%;right:6%;animation-delay:.6s}
-  .deco:nth-child(3){bottom:22%;left:8%;animation-delay:1.1s}
-  .deco:nth-child(4){bottom:18%;right:5%;animation-delay:.3s}
-  @keyframes floaty{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-15px) rotate(3deg)}}
 
   /* === LEVELS BUTTON (game screen) === */
   .levels-btn{position:fixed;top:14px;left:14px;z-index:40;padding:8px 18px;font-family:'Bubblegum Sans',cursive;font-size:1.1rem;color:#fff;background:rgba(0,0,0,.3);border:3px solid rgba(255,255,255,.5);border-radius:25px;cursor:pointer;text-decoration:none;transition:all .15s;backdrop-filter:blur(4px)}
@@ -101,15 +86,6 @@
 </head>
 <body>
 <a href="juegos.html" class="back-btn">Volver</a>
-
-<div id="title-screen" class="screen">
-  <span class="deco">🐾</span><span class="deco">🔤</span><span class="deco">🐕</span><span class="deco">🌟</span>
-  <div class="title-wrap">
-    <div class="welcome" id="welcomeMsg">Hola!</div>
-    <div class="title">Letras y<br>Numeros</div>
-    <button class="play-btn" id="playBtn">JUGAR</button>
-  </div>
-</div>
 
 <div id="level-screen" class="screen hidden">
   <div class="level-title">Elige nivel</div>
@@ -242,14 +218,11 @@ const LEVELS=[
   {name:'Campeon',emoji:'\u{1F3C6}',desc:'Todo mas dificil',chars:'ABCDEFGHIJKLMNOPQRSTUVWXYZ',nums:true,words:true,opts:6},
 ];
 const MSGS_OK=['BIEN!','GENIAL!','SUPER!','BRAVO!','PERFECTO!'];
-const MSGS_RETRY=['Otra vez!','Intenta!','Casi!'];
+const MSGS_RETRY=['Aaay no!','Uy uy uy!','Epa!','Nooo!','Casi!'];
+const SPEECH_RETRY=['Aaay que mal, intenta de nuevo','Uy uy uy, esa no es','Nooo, intenta otra vez','Epa, casi casi','Aaay no, prueba otra'];
 
 // === PLAYER ===
 const player=sessionStorage.getItem('jugadora')||'';
-if(player){
-  const w=document.getElementById('welcomeMsg');
-  if(w)w.textContent='Hola '+player+'!';
-}
 
 // === STATE ===
 let stars=0,streak=0,currentRound=null,locked=false,focusIdx=0;
@@ -264,10 +237,7 @@ function show(id){
   else{backBtn.style.display='block';levelsBtn.style.display='none';}
 }
 
-function goPlay(){initAudio();sndClick();show('level-screen');buildLevelGrid();startMusic()}
-document.getElementById('playBtn').onclick=goPlay;
-window._titleKey=e=>{if(e.key==='Enter'){e.preventDefault();goPlay();window.removeEventListener('keydown',window._titleKey)}};
-window.addEventListener('keydown',window._titleKey);
+initAudio();show('level-screen');buildLevelGrid();startMusic();
 
 // === LEVEL SCREEN ===
 function buildLevelGrid(){
@@ -584,7 +554,7 @@ window.addEventListener('keydown',e=>{
     else if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();highlightLevel(levelFocus-1)}
     else if(e.key==='Enter'){e.preventDefault();sndClick();selectLevel(levelFocus)}
     else if(e.key>='1'&&e.key<='5'){e.preventDefault();sndClick();selectLevel(parseInt(e.key)-1)}
-    else if(e.key==='Escape'){e.preventDefault();show('title-screen')}
+    else if(e.key==='Escape'){e.preventDefault();window.location.href='juegos.html'}
     return;
   }
 
@@ -637,7 +607,7 @@ function showFeedback(msg,isRetry){
   txt.style.animation='none';void txt.offsetWidth;txt.style.animation='fbPop .6s cubic-bezier(.34,1.56,.64,1) forwards';
   fbTimer=setTimeout(()=>{fb.classList.add('hidden');fbTimer=null},isRetry?700:900);
   const name=player?', '+player:'';
-  stopSpeech();speak(isRetry?'Intenta otra vez'+name:msg.replace('!','')+name);
+  stopSpeech();speak(isRetry?(SPEECH_RETRY[Math.floor(Math.random()*SPEECH_RETRY.length)]+name):msg.replace('!','')+name);
 }
 
 function spawnStars(btn){
