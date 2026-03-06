@@ -12,7 +12,6 @@
 <meta name="apple-mobile-web-app-title" content="Bela y Penu">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Letras y Numeros - Juegos Bela y Penu</title>
-<script src="https://js.puter.com/v2/"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@400;600;700&display=swap');
   *{margin:0;padding:0;box-sizing:border-box}
@@ -110,12 +109,13 @@ function sndWrong(){tone(300,.15,'sine',.06);setTimeout(()=>tone(250,.15,'sine',
 function sndClick(){tone(500,.04,'sine',.08)}
 function sndCeleb(){[523,659,784,1047,784,1047,1319].forEach((n,i)=>setTimeout(()=>tone(n,.2,'sine',.07),i*120))}
 
-// === SPEECH (natural Latin American voice via Puter.js + fallback) ===
-let cachedVoice=null,currentAudio=null,puterOk=true,speechGen=0;
+// === SPEECH (best available Latin American voice) ===
+let cachedVoice=null;
 function scoreVoice(v){
   let s=0;
   const name=(v.name||'').toLowerCase(),lang=v.lang||'',uri=(v.voiceURI||'').toLowerCase();
   if(!lang.startsWith('es'))return -1;
+  // quality tiers
   if(/online.*natural|natural.*online/i.test(name))s+=200;
   else if(/premium/i.test(name)||/premium/i.test(uri))s+=180;
   else if(/enhanced/i.test(name)||/enhanced/i.test(uri))s+=160;
@@ -123,10 +123,12 @@ function scoreVoice(v){
   else if(/neural|natural/i.test(name))s+=140;
   else if(/google/i.test(name))s+=40;
   if(/compact/i.test(uri))s-=30;
+  // region: Latin American > Spain
   if(/es[-_](MX|US|419)/i.test(lang))s+=60;
   else if(/es[-_](CO|AR|CL|PE|VE)/i.test(lang))s+=50;
   else if(/es[-_]ES/i.test(lang))s+=5;
   else s+=20;
+  // female voice preferred
   if(/female|paulina|penelope|elena|karla|angelica|jimena|monica|sofia|dalia|paloma|ximena|salome|isabela|soledad|francesca|marisol|mia|lupe|lucia|alba/i.test(name))s+=30;
   return s;
 }
@@ -136,10 +138,10 @@ function pickVoice(){
   if(!voices.length)return null;
   let best=null,bestScore=-1;
   for(const v of voices){const s=scoreVoice(v);if(s>bestScore){bestScore=s;best=v}}
-  if(best){cachedVoice=best;console.log('Fallback voice:',best.name,best.lang)}
+  if(best){cachedVoice=best;console.log('Voice selected:',best.name,best.lang)}
   return cachedVoice;
 }
-function speakLocal(text){
+function speak(text){
   if(!('speechSynthesis' in window))return;
   window.speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
@@ -147,19 +149,6 @@ function speakLocal(text){
   const v=pickVoice();
   if(v){u.voice=v;if(/premium|enhanced|neural|siri|online.*natural/i.test(v.name)||/ttsbundle/i.test(v.voiceURI||'')){u.pitch=1.05;u.rate=.9}}
   window.speechSynthesis.speak(u);
-}
-function speak(text){
-  const gen=++speechGen;
-  if(currentAudio){currentAudio.pause();currentAudio=null}
-  if('speechSynthesis' in window)window.speechSynthesis.cancel();
-  if(puterOk&&typeof puter!=='undefined'&&puter.ai){
-    puter.ai.txt2speech(text,{voice:'Mia',engine:'neural',language:'es-MX'}).then(audio=>{
-      if(gen!==speechGen)return;
-      currentAudio=audio;audio.play();
-    }).catch(()=>{puterOk=false;if(gen===speechGen)speakLocal(text)});
-    return;
-  }
-  speakLocal(text);
 }
 if('speechSynthesis' in window){
   window.speechSynthesis.getVoices();
