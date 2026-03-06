@@ -9,9 +9,10 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Bella y Penu">
+<meta name="apple-mobile-web-app-title" content="Bela y Penu">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Sumas y Restas - Juegos Bella y Penu</title>
+<title>Sumas y Restas - Juegos Bela y Penu</title>
+<script src="https://js.puter.com/v2/"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@400;600;700&display=swap');
   *{margin:0;padding:0;box-sizing:border-box}
@@ -144,19 +145,24 @@ function sndWrong(){tone(300,.15,'sine',.06);setTimeout(()=>tone(250,.15,'sine',
 function sndClick(){tone(500,.04,'sine',.08)}
 function sndCeleb(){[523,659,784,1047,784,1047,1319].forEach((n,i)=>setTimeout(()=>tone(n,.2,'sine',.07),i*120))}
 
-// === SPEECH ===
-let cachedVoice=null;
+// === SPEECH (natural Latin American voice via Puter.js + fallback) ===
+let cachedVoice=null,currentAudio=null,puterOk=true,speechGen=0;
 function scoreVoice(v){
   let s=0;
-  const name=v.name.toLowerCase(),lang=v.lang||'';
-  if(/premium|enhanced|neural|natural|siri/i.test(name)||/ttsbundle/i.test(v.voiceURI||''))s+=100;
-  if(/es[-_](MX|US|419|AR|CO|CL|PE|VE)/i.test(lang))s+=50;
+  const name=(v.name||'').toLowerCase(),lang=v.lang||'',uri=(v.voiceURI||'').toLowerCase();
+  if(!lang.startsWith('es'))return -1;
+  if(/online.*natural|natural.*online/i.test(name))s+=200;
+  else if(/premium/i.test(name)||/premium/i.test(uri))s+=180;
+  else if(/enhanced/i.test(name)||/enhanced/i.test(uri))s+=160;
+  else if(/siri/i.test(name)||/ttsbundle/i.test(uri))s+=150;
+  else if(/neural|natural/i.test(name))s+=140;
+  else if(/google/i.test(name))s+=40;
+  if(/compact/i.test(uri))s-=30;
+  if(/es[-_](MX|US|419)/i.test(lang))s+=60;
+  else if(/es[-_](CO|AR|CL|PE|VE)/i.test(lang))s+=50;
   else if(/es[-_]ES/i.test(lang))s+=5;
-  else if(lang.startsWith('es'))s+=20;
-  else return -1;
-  if(/female|paulina|penelope|elena|karla|angelica|jimena|monica|sofia/i.test(name))s+=30;
-  if(/google/i.test(name))s+=15;
-  if(!/compact/i.test(v.voiceURI||''))s+=10;
+  else s+=20;
+  if(/female|paulina|penelope|elena|karla|angelica|jimena|monica|sofia|dalia|paloma|ximena|salome|isabela|soledad|francesca|marisol|mia|lupe|lucia|alba/i.test(name))s+=30;
   return s;
 }
 function pickVoice(){
@@ -164,26 +170,31 @@ function pickVoice(){
   const voices=window.speechSynthesis.getVoices();
   if(!voices.length)return null;
   let best=null,bestScore=-1;
-  for(const v of voices){
-    const s=scoreVoice(v);
-    if(s>bestScore){bestScore=s;best=v}
-  }
-  if(best)cachedVoice=best;
+  for(const v of voices){const s=scoreVoice(v);if(s>bestScore){bestScore=s;best=v}}
+  if(best){cachedVoice=best;console.log('Fallback voice:',best.name,best.lang)}
   return cachedVoice;
 }
-function speak(text){
+function speakLocal(text){
   if(!('speechSynthesis' in window))return;
   window.speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
-  u.lang='es-MX';u.rate=.85;u.pitch=1.2;
+  u.lang='es-MX';u.rate=.85;u.pitch=1.1;
   const v=pickVoice();
-  if(v){
-    u.voice=v;
-    if(/premium|enhanced|neural|siri/i.test(v.name)||/ttsbundle/i.test(v.voiceURI||'')){
-      u.pitch=1.05;u.rate=.9;
-    }
-  }
+  if(v){u.voice=v;if(/premium|enhanced|neural|siri|online.*natural/i.test(v.name)||/ttsbundle/i.test(v.voiceURI||'')){u.pitch=1.05;u.rate=.9}}
   window.speechSynthesis.speak(u);
+}
+function speak(text){
+  const gen=++speechGen;
+  if(currentAudio){currentAudio.pause();currentAudio=null}
+  if('speechSynthesis' in window)window.speechSynthesis.cancel();
+  if(puterOk&&typeof puter!=='undefined'&&puter.ai){
+    puter.ai.txt2speech(text,{voice:'Mia',engine:'neural',language:'es-MX'}).then(audio=>{
+      if(gen!==speechGen)return;
+      currentAudio=audio;audio.play();
+    }).catch(()=>{puterOk=false;if(gen===speechGen)speakLocal(text)});
+    return;
+  }
+  speakLocal(text);
 }
 if('speechSynthesis' in window){
   window.speechSynthesis.getVoices();
@@ -222,6 +233,17 @@ const ANIMAL_SINGULAR={
 const ANIMAL_PLURAL={
   '🐥':'pollitos','🐰':'conejitos','🐱':'gatitos','⭐':'estrellitas','🏆':'estrellitas'
 };
+
+const PAW_PATROL=[
+  {name:'Chase',emoji:'🚔',s:'patrulla',p:'patrullas'},
+  {name:'Marshall',emoji:'🚒',s:'camion',p:'camiones'},
+  {name:'Skye',emoji:'🚁',s:'helicoptero',p:'helicopteros'},
+  {name:'Rubble',emoji:'🏗️',s:'excavadora',p:'excavadoras'},
+  {name:'Zuma',emoji:'🚤',s:'lancha',p:'lanchas'},
+  {name:'Rocky',emoji:'🐾',s:'huellita',p:'huellitas'},
+  {name:'Everest',emoji:'❄️',s:'copo de nieve',p:'copos de nieve'},
+  {name:'Tracker',emoji:'🌴',s:'palmera',p:'palmeras'},
+];
 
 const MSGS_OK=['BIEN!','GENIAL!','SUPER!','BRAVO!','PERFECTO!'];
 const MSGS_RETRY=['Otra vez!','Intenta!','Casi!'];
@@ -337,7 +359,12 @@ function nextRound(){
     if(!options.has(d))options.add(d);
   }
   const opts=shuffle([...options]);
-  currentRound={op,a,b,answer,opts,level:lv};
+  // ~30% chance of Paw Patrol themed round
+  let pawChar=null;
+  if(Math.random()<0.3){
+    pawChar=PAW_PATROL[Math.floor(Math.random()*PAW_PATROL.length)];
+  }
+  currentRound={op,a,b,answer,opts,level:lv,pawChar:pawChar};
   renderRound();
 }
 
@@ -347,12 +374,15 @@ function renderRound(){
   const r=currentRound;
   const lv=r.level;
   const area=document.getElementById('gameArea');
-  const emoji=lv.emoji;
-  const nameS=ANIMAL_SINGULAR[emoji]||'estrellita';
-  const nameP=ANIMAL_PLURAL[emoji]||'estrellitas';
+  // use Paw Patrol character if selected, otherwise level default
+  const pw=r.pawChar;
+  const emoji=pw?pw.emoji:lv.emoji;
+  const nameS=pw?pw.s:(ANIMAL_SINGULAR[lv.emoji]||'estrellita');
+  const nameP=pw?pw.p:(ANIMAL_PLURAL[lv.emoji]||'estrellitas');
   const na=r.a===1?('un '+nameS):(NUMS[r.a]+' '+nameP);
   const nb=r.b===1?('un '+nameS):(NUMS[r.b]+' '+nameP);
   const pn=PLAYER?(', '+PLAYER):'';
+  const charIntro=pw?(pw.name+' dice: '):'';
 
   // lock input until options appear
   locked=true;
@@ -361,7 +391,7 @@ function renderRound(){
     // === SUMS: 3 steps ===
     // Step 1: show first group
     area.innerHTML='<div class="emoji-group">'+renderEmojiGroup(emoji,r.a,false,lv)+'</div>';
-    speak('Mira'+pn+', tengo '+na);
+    speak(charIntro+'Mira'+pn+', tengo '+na);
 
     // Step 2: show + and second group
     stepTimers.push(setTimeout(function(){
@@ -388,7 +418,7 @@ function renderRound(){
     // === SUBTRACTIONS: 3 steps ===
     // Step 1: show all emojis (none faded)
     area.innerHTML='<div class="emoji-group">'+renderEmojiGroup(emoji,r.a,false,lv)+'</div>';
-    speak('Mira'+pn+', tengo '+na);
+    speak(charIntro+'Mira'+pn+', tengo '+na);
 
     // Step 2: fade the ones that leave, show -
     stepTimers.push(setTimeout(function(){

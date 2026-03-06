@@ -9,9 +9,9 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Bella y Penu">
+<meta name="apple-mobile-web-app-title" content="Bela y Penu">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Juegos Bella y Penu</title>
+<title>Juegos Bela y Penu</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@400;600;700&display=swap');
   *{margin:0;padding:0;box-sizing:border-box}
@@ -68,9 +68,9 @@
 <div class="player-overlay" id="playerOverlay">
   <div class="player-q">Quien va a jugar?</div>
   <div class="player-cards">
-    <div class="player-card" data-name="Bella" id="pBella">
+    <div class="player-card" data-name="Bela" id="pBela">
       <span class="player-emoji">👧</span>
-      <span class="player-name">Bella</span>
+      <span class="player-name">Bela</span>
     </div>
     <div class="player-card" data-name="Penu" id="pPenu">
       <span class="player-emoji">👧</span>
@@ -81,8 +81,8 @@
 <div class="hub">
   <span class="deco">🐎</span><span class="deco">🐕</span><span class="deco">🏇</span><span class="deco">🐈</span><span class="deco">🐇</span><span class="deco">🦊</span>
 
-  <div class="welcome" id="welcomeMsg">Bienvenidas Bella y Penu!</div>
-  <div class="title">Juegos<br>Bella y Penu</div>
+  <div class="welcome" id="welcomeMsg">Bienvenidas Bela y Penu!</div>
+  <div class="title">Juegos<br>Bela y Penu</div>
   <div class="subtitle" id="subtitleMsg">Elige un juego</div>
   <button class="change-player" id="changeBtn">Cambiar jugadora</button>
 
@@ -133,7 +133,7 @@ function showPlayerSelect(){
   pCards.forEach(c=>c.classList.remove('sel'));
   pCards[0].classList.add('sel');
   window._pKey=e=>{
-    if(e.key.toUpperCase()==='B'){pickPlayer('Bella');window.removeEventListener('keydown',window._pKey);return}
+    if(e.key.toUpperCase()==='B'){pickPlayer('Bela');window.removeEventListener('keydown',window._pKey);return}
     if(e.key.toUpperCase()==='P'){pickPlayer('Penu');window.removeEventListener('keydown',window._pKey);return}
     if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();pFocus=(pFocus+1)%2;pCards.forEach(c=>c.classList.remove('sel'));pCards[pFocus].classList.add('sel')}
     if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();pFocus=(pFocus+1)%2;pCards.forEach(c=>c.classList.remove('sel'));pCards[pFocus].classList.add('sel')}

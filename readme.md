@@ -1,8 +1,8 @@
-# Juegos Bella y Penu
+# Juegos Bela y Penu
 
-Coleccion de juegos educativos para Bella y Penu. Abre `juegosbella.html` para ver el menu principal.
+Coleccion de juegos educativos para Bela y Penu. Abre `juegosbella.html` para ver el menu principal.
 
-Al iniciar, se pregunta quien va a jugar (Bella o Penu) y toda la experiencia se personaliza con su nombre.
+Al iniciar, se pregunta quien va a jugar (Bela o Penu) y toda la experiencia se personaliza con su nombre.
 
 ## Juegos
 
