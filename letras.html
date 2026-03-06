@@ -238,7 +238,7 @@ window.addEventListener('keydown',window._titleKey);
 
 // === ROUND GENERATOR ===
 function nextRound(){
-  locked=false;focusIdx=0;
+  locked=false;focusIdx=0;stopSpeech();
   const type=Math.random();
   if(type<.25) roundFindChar();
   else if(type<.50) roundAssociate();
@@ -449,7 +449,7 @@ function checkAnswer(val,idx){
     showFeedback(MSGS_OK[Math.floor(Math.random()*MSGS_OK.length)],false);
     spawnStars(btn);
     if(streak%5===0)spawnConf();
-    setTimeout(nextRound,1200);
+    setTimeout(nextRound,2200);
   } else {
     btn.classList.add('wrong');
     sndWrong();
@@ -482,7 +482,7 @@ window.addEventListener('keydown',e=>{
       // flash the big char green
       const bc=document.querySelector('.big-char');
       if(bc)bc.style.color='#66BB6A';
-      setTimeout(nextRound,1200);
+      setTimeout(nextRound,2200);
     } else if(key.length===1&&key.match(/[A-Z0-9]/)){
       sndWrong();streak=0;
       showFeedback(MSGS_RETRY[Math.floor(Math.random()*MSGS_RETRY.length)],true);

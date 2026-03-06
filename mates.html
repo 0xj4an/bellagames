@@ -390,7 +390,7 @@ function renderRound(){
       g2.innerHTML=renderEmojiGroup(emoji,r.b,false,lv);
       area.appendChild(g2);
       speak('y llegan '+nb+' mas');
-    },3500));
+    },4500));
 
     // Step 3: show question and options
     stepTimers.push(setTimeout(function(){
@@ -401,7 +401,7 @@ function renderRound(){
       area.appendChild(od);
       bindOpts();locked=false;highlightOpt(0);
       speak('cuantos hay en total'+pn+'?');
-    },7000));
+    },9000));
 
   } else {
     // === SUBTRACTIONS: 3 steps ===
@@ -417,7 +417,7 @@ function renderRound(){
       var op=document.createElement('div');op.className='operator';op.textContent='-';
       area.appendChild(op);
       speak('pero se van '+nb);
-    },3500));
+    },4500));
 
     // Step 3: show question and options
     stepTimers.push(setTimeout(function(){
@@ -428,7 +428,7 @@ function renderRound(){
       area.appendChild(od);
       bindOpts();locked=false;highlightOpt(0);
       speak('cuantos quedan'+pn+'?');
-    },7000));
+    },9000));
   }
 }
 
@@ -491,7 +491,7 @@ function checkAnswer(val,idx){
     stopSpeech();speak(msg);
     spawnStars(btn);
     if(streak%5===0)spawnConf();
-    setTimeout(nextRound,1200);
+    setTimeout(nextRound,2200);
   } else {
     btn.classList.add('wrong');
     sndWrong();
