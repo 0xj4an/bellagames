@@ -23,7 +23,7 @@
   .back-btn:hover{background:rgba(0,0,0,.5)}
 
 
-  #level-screen{background:linear-gradient(180deg,#E8D5B7,#F0C89A,#D4A574)}
+  #level-screen{background:linear-gradient(180deg,#E8D5B7,#F0C89A,#D4A574);overflow-y:auto}
   .level-title{font-family:'Bubblegum Sans',cursive;font-size:clamp(1.8rem,5vw,3rem);color:#fff;text-shadow:3px 3px 0 #A0714E;margin-bottom:24px}
   .level-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;max-width:700px;width:92%}
   @media(max-width:600px){.level-grid{grid-template-columns:repeat(2,1fr);gap:10px}}
@@ -34,7 +34,7 @@
   .level-card .ldesc{font-size:.8rem;color:#888;margin-top:4px}
   .level-card .lnum{position:absolute;top:-8px;left:-8px;width:28px;height:28px;background:#FF6B9D;color:#fff;border-radius:50%;font-family:'Bubblegum Sans',cursive;font-size:.95rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2)}
 
-  #select-screen{background:linear-gradient(180deg,#E8D5B7,#F0C89A,#D4A574)}
+  #select-screen{background:linear-gradient(180deg,#E8D5B7,#F0C89A,#D4A574);overflow-y:auto}
   .select-title{font-family:'Bubblegum Sans',cursive;font-size:clamp(1.8rem,5vw,3rem);color:#fff;text-shadow:3px 3px 0 #A0714E;margin-bottom:24px}
   .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;max-width:650px;width:92%}
   @media(max-width:600px){.grid{grid-template-columns:repeat(2,1fr);gap:10px}.card .preview{font-size:3.5rem}.card{padding:14px 8px}}
@@ -300,10 +300,9 @@ function goBack(){
   if(currentScreen==='select-screen'){removeLevelKeys();show('level-screen');buildLevelGrid();}
   else{window.location.href='juegos.html';}
 }
-initAudio();show('level-screen');buildLevelGrid();
-
 // === LEVEL SELECTION ===
 let levelFocus=0;
+initAudio();show('level-screen');buildLevelGrid();
 function removeLevelKeys(){if(window._levelKey){window.removeEventListener('keydown',window._levelKey);window._levelKey=null}}
 
 function highlightLevel(i){

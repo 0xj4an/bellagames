@@ -106,12 +106,12 @@ const AC=window.AudioContext||window.webkitAudioContext;let ac;
 function initAudio(){if(!ac)ac=new AC();if(ac.state==='suspended')ac.resume()}
 function tone(f,d,t='sine',v=.1){if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();o.type=t;o.frequency.value=f;g.gain.value=v;g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}
 function sndCorrect(){tone(523,.1,'sine',.12);setTimeout(()=>tone(659,.1,'sine',.1),80);setTimeout(()=>tone(784,.15,'sine',.1),160)}
-function sndWrong(){tone(300,.15,'sine',.06);setTimeout(()=>tone(250,.15,'sine',.05),100)}
+function sndWrong(){tone(300,.2,'sawtooth',.15);setTimeout(()=>tone(250,.25,'sawtooth',.12),100)}
 function sndClick(){tone(500,.04,'sine',.08)}
 function sndCeleb(){[523,659,784,1047,784,1047,1319].forEach((n,i)=>setTimeout(()=>tone(n,.2,'sine',.07),i*120))}
 
 // === SPEECH (Amazon Polly via proxy + Web Speech API fallback) ===
-let ttsOk=true,activeTTSAudios=[],cachedVoice=null;
+let ttsOk=true,ttsFails=0,activeTTSAudios=[],cachedVoice=null;
 function scoreVoice(v){
   let s=0;const name=(v.name||'').toLowerCase(),lang=v.lang||'',uri=(v.voiceURI||'').toLowerCase();
   if(!lang.startsWith('es'))return -1;
@@ -139,19 +139,22 @@ function speakLocal(text){
   window.speechSynthesis.speak(u);
 }
 function speak(text){
-  if(ttsOk){
+  if(ttsOk||ttsFails>=10){
+    if(ttsFails>=10)ttsFails=0;
     fetch('/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({voice:'Mia',text:text,service:'polly'})})
     .then(r=>r.json()).then(d=>{
       if(d.success&&d.speak_url){
+        ttsOk=true;ttsFails=0;
         const audio=new Audio(d.speak_url);
         activeTTSAudios.push(audio);
         audio.onended=()=>{activeTTSAudios=activeTTSAudios.filter(a=>a!==audio)};
         audio.play();
       }
       else throw 0;
-    }).catch(()=>{ttsOk=false;speakLocal(text)});
+    }).catch(()=>{ttsOk=false;ttsFails++;speakLocal(text)});
     return;
   }
+  ttsFails++;
   speakLocal(text);
 }
 if('speechSynthesis' in window){window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=()=>{cachedVoice=null;pickVoice()}}
@@ -536,12 +539,13 @@ function checkAnswer(val,idx){
     sndWrong();
     streak=0;
     showFeedback(MSGS_RETRY[Math.floor(Math.random()*MSGS_RETRY.length)],true);
-    // highlight correct answer
+    // highlight correct answer and say it
     setTimeout(()=>{
       btn.classList.remove('wrong');
       document.querySelectorAll('.opt-btn').forEach(b=>{
         if(b.dataset.val===currentRound.answer)b.classList.add('hint');
       });
+      setTimeout(()=>{stopSpeech();speak('Es la '+currentRound.answer)},800);
     },500);
   }
 }
@@ -578,6 +582,7 @@ window.addEventListener('keydown',e=>{
       } else if(key.length===1&&key.match(/[A-Z0-9]/)){
         sndWrong();streak=0;
         showFeedback(MSGS_RETRY[Math.floor(Math.random()*MSGS_RETRY.length)],true);
+        setTimeout(()=>{stopSpeech();speak('Es la '+currentRound.answer)},1300);
       }
       return;
     }
@@ -605,7 +610,7 @@ function showFeedback(msg,isRetry){
   txt.className='fb-text'+(isRetry?' retry':'');
   fb.classList.remove('hidden');
   txt.style.animation='none';void txt.offsetWidth;txt.style.animation='fbPop .6s cubic-bezier(.34,1.56,.64,1) forwards';
-  fbTimer=setTimeout(()=>{fb.classList.add('hidden');fbTimer=null},isRetry?700:900);
+  fbTimer=setTimeout(()=>{fb.classList.add('hidden');fbTimer=null},isRetry?2500:900);
   const name=player?', '+player:'';
   stopSpeech();speak(isRetry?(SPEECH_RETRY[Math.floor(Math.random()*SPEECH_RETRY.length)]+name):msg.replace('!','')+name);
 }
