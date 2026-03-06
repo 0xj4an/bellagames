@@ -1,7 +1,7 @@
 {
-  "name": "Mis Juegos",
-  "short_name": "Mis Juegos",
-  "description": "Coleccion de juegos educativos para ninos",
+  "name": "Kids Games",
+  "short_name": "Kids Games",
+  "description": "Collection of educational games for kids",
   "start_url": "/juegos.html",
   "display": "standalone",
   "background_color": "#87CEEB",

@@ -1,10 +1,10 @@
-# Juegos de Bela y Penu
+# Kids Games
 
 Coleccion de 4 juegos educativos para ninos pequenos (2-6 anos), construidos con HTML, CSS y JavaScript puro — cero dependencias. Toda la experiencia se personaliza con el nombre del jugador: voz narrativa, felicitaciones y mensajes adaptados.
 
 ## Menu principal (`juegos.html`)
 
-Al abrir la app se muestra la pantalla de seleccion de jugador. Por defecto vienen **Bela** y **Penu**, pero se pueden agregar nuevos jugadores (nombre + color + emoji) o eliminar existentes. Los perfiles se guardan en `localStorage` y el jugador activo en `sessionStorage`.
+Al abrir la app se muestra la pantalla de seleccion de jugador. Se pueden agregar jugadores (nombre + color + emoji) o eliminar existentes. Los perfiles se guardan en `localStorage` y el jugador activo en `sessionStorage`.
 
 Despues de elegir jugador se muestra el menu con 4 tarjetas de juego en grid 2×2. Navegacion completa por teclado (flechas, Enter, teclas numericas 1-4) y touch.
 
@@ -121,7 +121,7 @@ Sistema de dos capas:
 1. **Principal**: Amazon Polly (voz Mia, es-MX) via proxy Caddy en `/tts` → `streamlabs.com/polly/speak`
 2. **Fallback**: Web Speech API con sistema de scoring para seleccionar la mejor voz disponible (prioriza voces premium, latinoamericanas y femeninas)
 
-La voz narra preguntas, felicita por nombre ("Muy bien Bela!") y explica los problemas paso a paso.
+La voz narra preguntas, felicita por nombre y explica los problemas paso a paso.
 
 ---
 
@@ -143,7 +143,7 @@ Archivos HTML independientes con CSS + JavaScript puro. Cero dependencias extern
 ### Estructura de archivos
 
 ```text
-juegobella/
+kidsgames/
 ├── index.html          # Redireccion a juegos.html
 ├── juegos.html         # Menu principal + seleccion de jugador
 ├── animalitos.html     # Carrera de animalitos (obstaculos)
