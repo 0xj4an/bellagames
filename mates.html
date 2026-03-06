@@ -111,7 +111,7 @@
 <a href="juegos.html" class="back-btn" id="backBtn">Volver</a>
 
 <div id="title-screen" class="screen">
-  <span class="deco">➕</span><span class="deco">➖</span><span class="deco">🐥</span><span class="deco">🐰</span><span class="deco">🐱</span><span class="deco">⭐</span>
+  <span class="deco">➕</span><span class="deco">➖</span><span class="deco">⭐</span><span class="deco">🌸</span><span class="deco">🎈</span><span class="deco">🦋</span>
   <div class="title-wrap">
     <div class="welcome" id="welcomeText">Hola!</div>
     <div class="title">Sumas y<br>Restas</div>
@@ -203,21 +203,21 @@ function stopMusic(){if(musicAudio){musicAudio.pause();musicAudio.currentTime=0;
 
 // === DATA ===
 const LEVELS=[
-  {name:'Pollitos',emoji:'🐥',maxA:3,maxB:2,ops:['+'],opts:3,desc:'Sumas hasta 5'},
-  {name:'Conejitos',emoji:'🐰',maxA:5,maxB:5,ops:['+'],opts:4,desc:'Sumas hasta 10'},
-  {name:'Gatitos',emoji:'🐱',maxA:5,maxB:3,ops:['-'],opts:3,desc:'Restas faciles'},
-  {name:'Estrellitas',emoji:'⭐',maxA:7,maxB:5,ops:['+','-'],opts:4,desc:'Sumas y restas'},
-  {name:'Campeones',emoji:'🏆',maxA:12,maxB:8,ops:['+','-'],opts:4,desc:'Hasta 20'},
+  {name:'Facil',emoji:'⭐',maxA:3,maxB:2,ops:['+'],opts:3,desc:'Sumas hasta 5'},
+  {name:'Sumas',emoji:'🌸',maxA:5,maxB:5,ops:['+'],opts:4,desc:'Sumas hasta 10'},
+  {name:'Restas',emoji:'🎈',maxA:5,maxB:3,ops:['-'],opts:3,desc:'Restas faciles'},
+  {name:'Mezcla',emoji:'🦋',maxA:7,maxB:5,ops:['+','-'],opts:4,desc:'Sumas y restas'},
+  {name:'Campeon',emoji:'🏆',maxA:12,maxB:8,ops:['+','-'],opts:4,desc:'Hasta 20'},
 ];
 
 const NUMS=['','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve','diez','once','doce','trece','catorce','quince','dieciseis','diecisiete','dieciocho','diecinueve','veinte'];
 
-// Singular animal names for speech
+// Singular/plural names for speech
 const ANIMAL_SINGULAR={
-  '🐥':'pollito','🐰':'conejito','🐱':'gatito','⭐':'estrellita','🏆':'estrellita'
+  '⭐':'estrellita','🌸':'florecita','🎈':'globito','🦋':'mariposita','🏆':'estrellita'
 };
 const ANIMAL_PLURAL={
-  '🐥':'pollitos','🐰':'conejitos','🐱':'gatitos','⭐':'estrellitas','🏆':'estrellitas'
+  '⭐':'estrellitas','🌸':'florecitas','🎈':'globitos','🦋':'maripositas','🏆':'estrellitas'
 };
 
 const PAW_PATROL=[
@@ -385,8 +385,8 @@ function renderRound(){
       var g2=document.createElement('div');g2.className='emoji-group';
       g2.innerHTML=renderEmojiGroup(emoji,r.b,false,lv);
       area.appendChild(g2);
-      speak('y llegan '+nb+' mas');
-    },4500));
+      stopSpeech();speak('y llegan '+nb+' mas');
+    },5500));
 
     // Step 3: show question and options
     stepTimers.push(setTimeout(function(){
@@ -396,8 +396,8 @@ function renderRound(){
       od.innerHTML=r.opts.map(function(o,i){return '<button class="opt-btn" data-val="'+o+'" data-idx="'+i+'">'+o+'</button>'}).join('');
       area.appendChild(od);
       bindOpts();locked=false;highlightOpt(0);
-      speak('cuantos hay en total'+pn+'?');
-    },9000));
+      stopSpeech();speak('cuantos hay en total'+pn+'?');
+    },11000));
 
   } else {
     // === SUBTRACTIONS: 3 steps ===
@@ -412,8 +412,8 @@ function renderRound(){
       items.forEach(function(item,i){if(i>=keep)item.classList.add('faded')});
       var op=document.createElement('div');op.className='operator';op.textContent='-';
       area.appendChild(op);
-      speak('pero se van '+nb);
-    },4500));
+      stopSpeech();speak('pero se van '+nb);
+    },5500));
 
     // Step 3: show question and options
     stepTimers.push(setTimeout(function(){
@@ -423,8 +423,8 @@ function renderRound(){
       od.innerHTML=r.opts.map(function(o,i){return '<button class="opt-btn" data-val="'+o+'" data-idx="'+i+'">'+o+'</button>'}).join('');
       area.appendChild(od);
       bindOpts();locked=false;highlightOpt(0);
-      speak('cuantos quedan'+pn+'?');
-    },9000));
+      stopSpeech();speak('cuantos quedan'+pn+'?');
+    },11000));
   }
 }
 
@@ -434,7 +434,7 @@ function itemHTML(emoji,cls,delay){
 }
 function renderEmojiGroup(emoji,count,faded,lv){
   const fc=faded?' faded':'';
-  if(lv.name==='Campeones'&&count>10){
+  if(lv.name==='Campeon'&&count>10){
     let html='',idx=0,rem=count;
     while(rem>0){const rc=Math.min(rem,5);html+='<div class="emoji-row">';for(let j=0;j<rc;j++){html+=itemHTML(emoji,fc,idx*0.08);idx++}html+='</div>';rem-=rc}
     return html;
@@ -446,7 +446,7 @@ function renderEmojiGroup(emoji,count,faded,lv){
 
 function renderSubtractGroup(emoji,total,remove,lv){
   const keep=total-remove;
-  if(lv.name==='Campeones'&&total>10){
+  if(lv.name==='Campeon'&&total>10){
     let html='',idx=0,rem=total;
     while(rem>0){const rc=Math.min(rem,5);html+='<div class="emoji-row">';for(let j=0;j<rc;j++){html+=itemHTML(emoji,idx>=keep?' faded':'',idx*0.08);idx++}html+='</div>';rem-=rc}
     return html;
@@ -487,7 +487,7 @@ function checkAnswer(val,idx){
     stopSpeech();speak(msg);
     spawnStars(btn);
     if(streak%5===0)spawnConf();
-    setTimeout(nextRound,2200);
+    setTimeout(nextRound,3000);
   } else {
     btn.classList.add('wrong');
     sndWrong();

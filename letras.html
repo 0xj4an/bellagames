@@ -560,7 +560,7 @@ function checkAnswer(val,idx){
     showFeedback(MSGS_OK[Math.floor(Math.random()*MSGS_OK.length)],false);
     spawnStars(btn);
     if(streak%5===0)spawnConf();
-    setTimeout(nextRound,2200);
+    setTimeout(nextRound,3000);
   } else {
     btn.classList.add('wrong');
     sndWrong();
@@ -604,7 +604,7 @@ window.addEventListener('keydown',e=>{
         if(streak%5===0)spawnConf();
         const bc=document.querySelector('.big-char');
         if(bc)bc.style.color='#66BB6A';
-        setTimeout(nextRound,2200);
+        setTimeout(nextRound,3000);
       } else if(key.length===1&&key.match(/[A-Z0-9]/)){
         sndWrong();streak=0;
         showFeedback(MSGS_RETRY[Math.floor(Math.random()*MSGS_RETRY.length)],true);
