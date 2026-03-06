@@ -26,7 +26,7 @@ Carrera de obstaculos en Canvas 2D. Elige tu animal y compite contra 2 rivales c
 - **5 niveles de dificultad**:
   - 🐣 Principiante — 5 vidas, pista corta, IA salta 80%
   - 🐰 Normal — 3 vidas, IA salta 70%
-  - 🦌 Dificil — 3 vidas, obstaculos mas frecuentes, IA salta 60%
+  - 🦊 Dificil — 3 vidas, obstaculos mas frecuentes, IA salta 60%
   - 🐻 Experto — 2 vidas, IA salta 50%
   - 🏆 Campeon — 1 vida, pista larga, IA salta 40%
 - **Efectos**: confeti al ganar, particulas de polvo al aterrizar, explosion de escombros al chocar, sacudida de pantalla, parallax en nubes y colinas
@@ -61,9 +61,9 @@ Juego de aprendizaje con 4 tipos de mini-juego que rotan aleatoriamente cada ron
   3. **Teclea la letra** — en escritorio hay que presionar la tecla correcta; en movil es opcion multiple
   4. **Completa la palabra** — una palabra con una letra faltante (20 palabras: GATO, PERRO, SOL, LUNA, CHASE, SKYE, MARSHALL, etc.)
 - **5 niveles**:
-  - A️⃣ Vocales — A, E, I, O, U (3 opciones)
+  - 🅰️ Vocales — A, E, I, O, U (3 opciones)
   - 🔤 Letras — A-Z (4 opciones, incluye palabras)
-  - 1️⃣ Numeros — 1-9 (4 opciones)
+  - 🔢 Numeros — 1-9 (4 opciones)
   - ⭐ Mezcla — letras + numeros (5 opciones)
   - 🏆 Campeon — todo mezclado (6 opciones)
 - **Paw Patrol**: 7 personajes (Chase, Marshall, Skye, Rubble, Zuma, Rocky, Everest) aparecen como imagenes circulares en rondas de conteo (~30% de probabilidad) y como palabras para completar
@@ -77,15 +77,15 @@ Juego de aprendizaje con 4 tipos de mini-juego que rotan aleatoriamente cada ron
 Aprendizaje de aritmetica con explicacion visual paso a paso usando emojis contables.
 
 - **Flujo por ronda**:
-  1. (4.5s) Muestra primer grupo de emojis + voz: "Mira [Jugador], tengo N [animalitos]"
-  2. (4.5s) Muestra operador (+/−) y segundo grupo + voz: "y llegan N mas" o "pero se van N"
-  3. (9s) Muestra "= ?" con 3-4 opciones de respuesta
+  1. (0s) Muestra primer grupo de emojis + voz: "Mira [Jugador], tengo N [animalitos]"
+  2. (5.5s) Muestra operador (+/−) y segundo grupo + voz: "y llegan N mas" o "pero se van N"
+  3. (11s) Muestra "= ?" con 3-4 opciones de respuesta
 - **5 niveles**:
-  - 🐥 Pollitos — sumas hasta 5 (3 opciones)
-  - 🐰 Conejitos — sumas hasta 10 (4 opciones)
-  - 🐱 Gatitos — restas faciles (3 opciones)
-  - ⭐ Estrellitas — sumas y restas mezcladas (4 opciones)
-  - 🏆 Campeones — operaciones hasta 20 (4 opciones)
+  - ⭐ Facil — sumas hasta 5 (3 opciones)
+  - 🌸 Sumas — sumas hasta 10 (4 opciones)
+  - 🎈 Restas — restas faciles (3 opciones)
+  - 🦋 Mezcla — sumas y restas mezcladas (4 opciones)
+  - 🏆 Campeon — operaciones hasta 20 (4 opciones)
 - **Visual**: emojis aparecen uno por uno con animacion pop; en restas los emojis removidos se desvanecen con tachado y escala reducida
 - **Paw Patrol**: ~30% de probabilidad de que los emojis sean imagenes de personajes Paw Patrol en lugar de emojis estandar
 - **Controles**: flechas + Enter, clic/toca, numeros directos
