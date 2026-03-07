@@ -127,6 +127,18 @@
       <div class="game-info"><div class="game-name">Sumas y Restas</div>
       <div class="game-desc">Aprende a sumar y restar jugando</div></div>
     </a>
+    <a href="figuras.html" class="game-card" id="game5">
+      <span class="game-num">5</span>
+      <span class="game-icon">🔷</span>
+      <div class="game-info"><div class="game-name">Figuras y Colores</div>
+      <div class="game-desc">Aprende figuras geometricas y colores</div></div>
+    </a>
+    <a href="memoria.html" class="game-card" id="game6">
+      <span class="game-num">6</span>
+      <span class="game-icon">🧠</span>
+      <div class="game-info"><div class="game-name">Memoria</div>
+      <div class="game-desc">Encuentra las parejas escondidas</div></div>
+    </a>
   </div>
 </div>
 <script>
@@ -381,6 +393,8 @@ function gameKeyHandler(e){
   if(e.key==='2'){window.location.href='horserace.html';return}
   if(e.key==='3'){window.location.href='letras.html';return}
   if(e.key==='4'){window.location.href='mates.html';return}
+  if(e.key==='5'){window.location.href='figuras.html';return}
+  if(e.key==='6'){window.location.href='memoria.html';return}
   if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();selectCard((focus+1)%cards.length)}
   if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();selectCard((focus-1+cards.length)%cards.length)}
   if(e.key==='Enter'){e.preventDefault();cards[focus].click()}

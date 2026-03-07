@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mis Juegos">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Memoria - Mis Juegos</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@400;600;700&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Fredoka',sans-serif;overflow:hidden;background:#E0F7FA;user-select:none;touch-action:none;-webkit-touch-callout:none}
+  .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s;z-index:10}
+  .screen.hidden{opacity:0;pointer-events:none}
+  .back-btn{position:fixed;top:14px;left:14px;z-index:40;padding:8px 18px;font-family:'Bubblegum Sans',cursive;font-size:1.1rem;color:#fff;background:rgba(0,0,0,.3);border:3px solid rgba(255,255,255,.5);border-radius:25px;cursor:pointer;text-decoration:none;transition:all .15s;backdrop-filter:blur(4px)}
+  .back-btn:hover{background:rgba(0,0,0,.5)}
+  .levels-btn{position:fixed;top:14px;left:14px;z-index:40;padding:8px 18px;font-family:'Bubblegum Sans',cursive;font-size:1.1rem;color:#fff;background:rgba(0,0,0,.3);border:3px solid rgba(255,255,255,.5);border-radius:25px;cursor:pointer;text-decoration:none;transition:all .15s;backdrop-filter:blur(4px)}
+  .levels-btn:hover{background:rgba(0,0,0,.5)}
+
+  /* === LEVEL SCREEN === */
+  #level-screen{background:linear-gradient(180deg,#E0F7FA,#B2EBF2,#C8E6C9)}
+  .level-title{font-family:'Bubblegum Sans',cursive;font-size:clamp(1.8rem,5vw,3rem);color:#fff;text-shadow:3px 3px 0 #00897B;margin-bottom:24px}
+  .level-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:500px;width:92%}
+  @media(max-width:600px){.level-grid{gap:10px}}
+  .level-card{background:#fff;border-radius:22px;padding:18px 10px;text-align:center;cursor:pointer;border:4px solid transparent;box-shadow:0 6px 20px rgba(0,0,0,.12);transition:all .3s cubic-bezier(.34,1.56,.64,1);position:relative}
+  .level-card:hover,.level-card.selected{transform:translateY(-8px) scale(1.05);border-color:#FFD54F}
+  .level-card .lemoji{font-size:3rem;display:block;margin-bottom:6px}
+  .level-card .lname{font-family:'Bubblegum Sans',cursive;font-size:1.1rem;color:#00897B}
+  .level-card .lnum{position:absolute;top:-8px;left:-8px;width:28px;height:28px;background:#00897B;color:#fff;border-radius:50%;font-family:'Bubblegum Sans',cursive;font-size:.95rem;display:flex;align-items:center;justify-content:center}
+
+  /* === GAME SCREEN === */
+  #game-screen{background:linear-gradient(180deg,#E0F7FA,#B2EBF2,#C8E6C9)}
+  .game-area{display:flex;flex-direction:column;align-items:center;gap:14px;width:92%;max-width:500px}
+  .prompt{font-family:'Bubblegum Sans',cursive;font-size:clamp(1.3rem,3.5vw,2rem);color:#fff;text-shadow:2px 2px 0 #00897B;text-align:center}
+  .pair-counter{font-family:'Bubblegum Sans',cursive;font-size:clamp(1rem,2.5vw,1.3rem);color:#00695C;background:rgba(255,255,255,.7);padding:4px 16px;border-radius:16px}
+
+  /* === MEMORY GRID === */
+  .mem-grid{display:grid;gap:10px;width:100%}
+
+  /* === MEMORY CARD (3D FLIP) === */
+  .mem-card{perspective:600px;cursor:pointer;aspect-ratio:1;border-radius:18px}
+  .mem-card.selected{box-shadow:0 0 0 3px #FFD54F,0 0 12px rgba(255,213,79,.5);border-radius:18px}
+  .card-inner{position:relative;width:100%;height:100%;transition:transform .5s cubic-bezier(.4,0,.2,1);transform-style:preserve-3d}
+  .mem-card.flipped .card-inner,.mem-card.matched .card-inner{transform:rotateY(180deg)}
+  .card-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:18px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .card-back{background:linear-gradient(135deg,#26C6DA,#00897B);font-size:clamp(1.5rem,5vw,2.5rem);color:rgba(255,255,255,.35);box-shadow:0 4px 15px rgba(0,0,0,.12);border:3px solid rgba(255,255,255,.3)}
+  .card-front{transform:rotateY(180deg);background:#fff;border:3px solid #E0E0E0;box-shadow:0 4px 15px rgba(0,0,0,.08)}
+  .card-emoji{font-size:clamp(1.8rem,7vw,3.2rem);line-height:1}
+  .card-paw{width:70%;height:70%;object-fit:cover;border-radius:50%;border:2px solid #FFD54F}
+  .card-svg{display:flex;align-items:center;justify-content:center}
+  .card-svg svg{width:clamp(40px,10vw,70px);height:clamp(40px,10vw,70px)}
+
+  /* === CARD STATES === */
+  .mem-card.matched .card-face.card-front{border-color:#66BB6A;background:#E8F5E9;box-shadow:0 0 15px rgba(102,187,106,.4)}
+  .mem-card.matched{pointer-events:none;transform:scale(.95);transition:transform .3s}
+  .mem-card.no-match .card-face.card-front{border-color:#EF5350}
+
+  /* === WIN OVERLAY === */
+  .win-overlay{position:fixed;inset:0;z-index:35;background:rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;animation:fadeIn .4s}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  .win-box{background:#fff;border-radius:28px;padding:30px 40px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.3);max-width:90vw}
+  .win-text{font-family:'Bubblegum Sans',cursive;font-size:clamp(2rem,6vw,3.5rem);color:#FF6B9D;text-shadow:2px 2px 0 #FFD54F;margin-bottom:20px}
+  .win-sub{font-family:'Fredoka',sans-serif;font-size:1.1rem;color:#888;margin-bottom:20px}
+  .win-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .win-btn{padding:12px 30px;font-family:'Bubblegum Sans',cursive;font-size:1.3rem;color:#fff;border-radius:30px;cursor:pointer;border:3px solid #fff;transition:all .15s}
+  .win-btn:hover{transform:translateY(-2px)}
+  .win-btn:active{transform:translateY(2px)}
+  .win-btn.primary{background:linear-gradient(135deg,#66BB6A,#4CAF50);box-shadow:0 4px 0 #388E3C}
+  .win-btn.secondary{background:rgba(0,0,0,.3);border-color:rgba(255,255,255,.5)}
+
+  /* === HUD === */
+  .hud{position:fixed;top:14px;right:14px;z-index:20;display:flex;gap:10px;align-items:center}
+  .star-count{background:rgba(255,255,255,.9);border-radius:20px;padding:6px 16px;font-family:'Bubblegum Sans',cursive;font-size:1.2rem;color:#FFB300;box-shadow:0 3px 10px rgba(0,0,0,.1)}
+
+  /* === FEEDBACK === */
+  .feedback{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:30;pointer-events:none;transition:opacity .3s}
+  .feedback.hidden{opacity:0;pointer-events:none}
+  .fb-text{font-family:'Bubblegum Sans',cursive;font-size:clamp(3rem,10vw,6rem);color:#fff;text-shadow:4px 4px 0 #66BB6A,8px 8px 0 #43A047;animation:fbPop .6s cubic-bezier(.34,1.56,.64,1) forwards}
+  .fb-text.retry{text-shadow:4px 4px 0 #00897B,8px 8px 0 #00695C;font-size:clamp(1.8rem,5vw,3rem)}
+  @keyframes fbPop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.1);opacity:1}100%{transform:scale(1);opacity:0}}
+
+  .confetti{position:fixed;z-index:25;animation:fall linear forwards}
+  @keyframes fall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+  .star-particle{position:fixed;z-index:28;pointer-events:none;font-size:2rem;animation:starFloat 1s ease-out forwards}
+  @keyframes starFloat{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-80px) scale(0);opacity:0}}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+  .paw-img{width:50px;height:50px;border-radius:50%;object-fit:cover;border:3px solid #FFD54F;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+</style>
+</head>
+<body>
+<a href="juegos.html" class="back-btn">Volver</a>
+
+<div id="level-screen" class="screen hidden">
+  <div class="level-title">Elige nivel</div>
+  <div class="level-grid" id="levelGrid"></div>
+</div>
+
+<div id="game-screen" class="screen hidden">
+  <div class="hud"><div class="star-count" id="starCount">&#11088; 0</div></div>
+  <button class="levels-btn" id="levelsBtn">Niveles</button>
+  <div class="game-area" id="gameArea"></div>
+</div>
+
+<div class="feedback hidden" id="feedback"><div class="fb-text" id="fbText">BIEN!</div></div>
+
+<script>
+// === AUDIO ===
+var AC=window.AudioContext||window.webkitAudioContext;var ac;
+function initAudio(){if(!ac)ac=new AC();if(ac.state==='suspended')ac.resume()}
+function tone(f,d,t,v){t=t||'sine';v=v||.1;if(!ac)return;var o=ac.createOscillator(),g=ac.createGain();o.type=t;o.frequency.value=f;g.gain.value=v;g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}
+function sndCorrect(){tone(523,.1,'sine',.12);setTimeout(function(){tone(659,.1,'sine',.1)},80);setTimeout(function(){tone(784,.15,'sine',.1)},160)}
+function sndWrong(){tone(400,.15,'sine',.06);setTimeout(function(){tone(350,.15,'sine',.05)},80)}
+function sndClick(){tone(500,.04,'sine',.08)}
+function sndFlip(){tone(800,.05,'sine',.08);setTimeout(function(){tone(1100,.04,'sine',.06)},30)}
+function sndCeleb(){[523,659,784,1047,784,1047,1319].forEach(function(n,i){setTimeout(function(){tone(n,.2,'sine',.07)},i*120)})}
+
+// === SPEECH (Amazon Polly via proxy + Web Speech API fallback) ===
+var ttsOk=true,ttsFails=0,activeTTSAudios=[],cachedVoice=null;
+function scoreVoice(v){
+  var s=0,name=(v.name||'').toLowerCase(),lang=v.lang||'',uri=(v.voiceURI||'').toLowerCase();
+  if(!lang.startsWith('es'))return -1;
+  if(/premium|enhanced|neural|natural|siri|online/i.test(name)||/ttsbundle/i.test(uri))s+=100;
+  if(/compact/i.test(uri))s-=30;
+  if(/es[-_](MX|US|419)/i.test(lang))s+=60;else if(/es[-_](CO|AR|CL|PE|VE)/i.test(lang))s+=50;else if(/es[-_]ES/i.test(lang))s+=5;else s+=20;
+  if(/female|paulina|penelope|elena|karla|angelica|jimena|monica|sofia|dalia|paloma|mia|lupe|lucia/i.test(name))s+=30;
+  return s;
+}
+function pickVoice(){
+  if(cachedVoice)return cachedVoice;
+  var voices=window.speechSynthesis.getVoices();if(!voices.length)return null;
+  var best=null,bs=-1;for(var i=0;i<voices.length;i++){var s=scoreVoice(voices[i]);if(s>bs){bs=s;best=voices[i]}}
+  if(best)cachedVoice=best;return cachedVoice;
+}
+function stopSpeech(){
+  activeTTSAudios.forEach(function(a){a.pause();a.src=''});
+  activeTTSAudios=[];
+  if('speechSynthesis' in window)window.speechSynthesis.cancel();
+}
+function speakLocal(text){
+  if(!('speechSynthesis' in window))return;
+  var u=new SpeechSynthesisUtterance(text);u.lang='es-MX';u.rate=.85;u.pitch=1.1;
+  var v=pickVoice();if(v){u.voice=v;if(/premium|enhanced|neural|siri/i.test(v.name)){u.pitch=1.05;u.rate=.9}}
+  window.speechSynthesis.speak(u);
+}
+function speak(text){
+  if(ttsOk||ttsFails>=10){
+    if(ttsFails>=10)ttsFails=0;
+    fetch('/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({voice:'Mia',text:text,service:'polly'})})
+    .then(function(r){return r.json()}).then(function(d){
+      if(d.success&&d.speak_url){
+        ttsOk=true;ttsFails=0;
+        var audio=new Audio(d.speak_url);
+        activeTTSAudios.push(audio);
+        audio.onended=function(){activeTTSAudios=activeTTSAudios.filter(function(a){return a!==audio})};
+        audio.play();
+      }
+      else throw 0;
+    }).catch(function(){ttsOk=false;ttsFails++;speakLocal(text)});
+    return;
+  }
+  ttsFails++;
+  speakLocal(text);
+}
+if('speechSynthesis' in window){window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=function(){cachedVoice=null;pickVoice()}}
+
+// === BACKGROUND MUSIC ===
+var musicAudio=null;
+function startMusic(){
+  if(musicAudio)return;
+  musicAudio=new Audio('music/fun.mp3');
+  musicAudio.loop=true;musicAudio.volume=0.18;
+  musicAudio.play().catch(function(){});
+}
+function stopMusic(){if(musicAudio){musicAudio.pause();musicAudio.currentTime=0;musicAudio=null;}}
+
+// === PAIR DATA ===
+var SVG_HEART='<svg viewBox="0 0 120 120"><path d="M60,100 C20,70 0,40 20,20 C40,0 60,15 60,35 C60,15 80,0 100,20 C120,40 100,70 60,100Z" fill="#EF5350" stroke="#fff" stroke-width="3"/></svg>';
+var SVG_STAR='<svg viewBox="0 0 120 120"><polygon points="60,5 72,45 115,45 80,70 92,110 60,85 28,110 40,70 5,45 48,45" fill="#FFD54F" stroke="#fff" stroke-width="3"/></svg>';
+
+var PAIRS_REG=[
+  // Related
+  {a:'\u270F\uFE0F',b:'\uD83D\uDCD3',hint:'l\u00E1piz y cuaderno'},
+  {a:'\u2600\uFE0F',b:'\uD83C\uDF19',hint:'sol y luna'},
+  {a:'\uD83D\uDC15',b:'\uD83E\uDDB4',hint:'perro y hueso'},
+  {a:'\uD83C\uDF3A',b:'\uD83E\uDD8B',hint:'flor y mariposa'},
+  {a:'\uD83D\uDC31',b:'\uD83D\uDC1F',hint:'gato y pez'},
+  {a:'\u26BD',b:'\uD83E\uDD45',hint:'pelota y arco'},
+  {a:'\uD83C\uDF27\uFE0F',b:'\u2602\uFE0F',hint:'lluvia y paraguas'},
+  {a:'\uD83D\uDC1D',b:'\uD83C\uDF6F',hint:'abeja y miel'},
+  {a:'\uD83D\uDD11',b:'\uD83D\uDD12',hint:'llave y candado'},
+  {a:'\uD83D\uDC14',b:'\uD83E\uDD5A',hint:'gallina y huevo'},
+  {a:'\uD83C\uDFB5',b:'\uD83C\uDFB8',hint:'m\u00FAsica y guitarra'},
+  {a:'\uD83C\uDF5E',b:'\uD83E\uDDC8',hint:'pan y mantequilla'},
+  // Identical
+  {a:'\uD83C\uDF4E',b:'\uD83C\uDF4E',hint:'manzanas'},
+  {a:'\uD83E\uDD84',b:'\uD83E\uDD84',hint:'unicornios'},
+  {a:'\uD83C\uDF08',b:'\uD83C\uDF08',hint:'arco\u00EDris'},
+  {a:'\uD83D\uDC38',b:'\uD83D\uDC38',hint:'ranas'},
+  {a:'\uD83C\uDF88',b:'\uD83C\uDF88',hint:'globos'},
+  {a:'\uD83C\uDF55',b:'\uD83C\uDF55',hint:'pizzas'},
+  {a:'\uD83D\uDE80',b:'\uD83D\uDE80',hint:'cohetes'},
+  {a:'\uD83D\uDC22',b:'\uD83D\uDC22',hint:'tortugas'},
+];
+
+var PAIRS_SVG=[
+  {a:SVG_HEART,b:'\u2764\uFE0F',hint:'corazones',isSvg:true},
+  {a:SVG_STAR,b:'\u2B50',hint:'estrellas',isSvg:true},
+];
+
+var PAIRS_PAW=[
+  {a:'paw/chase.jpg',b:'\uD83D\uDE94',hint:'Chase',isPaw:true},
+  {a:'paw/marshall.jpg',b:'\uD83D\uDE92',hint:'Marshall',isPaw:true},
+  {a:'paw/skye.jpg',b:'\u2708\uFE0F',hint:'Skye',isPaw:true},
+  {a:'paw/rubble.jpg',b:'\uD83D\uDE9C',hint:'Rubble',isPaw:true},
+  {a:'paw/zuma.jpg',b:'\uD83D\uDEA4',hint:'Zuma',isPaw:true},
+  {a:'paw/rocky.jpg',b:'\u267B\uFE0F',hint:'Rocky',isPaw:true},
+  {a:'paw/everest.jpg',b:'\u2744\uFE0F',hint:'Everest',isPaw:true},
+];
+
+var MSGS_OK=['BIEN!','GENIAL!','SUPER!','BRAVO!','PERFECTO!'];
+var SPEECH_OK=['Muy bien','Excelente','Bravo','Genial','Perfecto'];
+
+// === LEVELS ===
+var LEVELS=[
+  {name:'F\u00E1cil',emoji:'\u2B50',pairs:3,cols:3,desc:'3 parejas'},
+  {name:'Normal',emoji:'\uD83C\uDF38',pairs:4,cols:4,desc:'4 parejas'},
+  {name:'Dif\u00EDcil',emoji:'\uD83D\uDD25',pairs:6,cols:4,desc:'6 parejas'},
+];
+
+// === PLAYER ===
+var player=sessionStorage.getItem('jugadora')||'';
+
+// === STATE ===
+var stars=0,streak=0,locked=false,focusIdx=0;
+var currentLevel=null,levelFocus=0;
+var gameCards=[],flipped=[],matchedCount=0,totalPairs=0,currentCols=3;
+var gamePairs=[]; // pairs selected for current game
+
+// === SCREEN MANAGEMENT ===
+function show(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.add('hidden')});
+  document.getElementById(id).classList.remove('hidden');
+  var backBtn=document.querySelector('.back-btn');
+  var levelsBtn=document.getElementById('levelsBtn');
+  if(id==='game-screen'){backBtn.style.display='none';levelsBtn.style.display='block';}
+  else{backBtn.style.display='block';levelsBtn.style.display='none';}
+}
+
+initAudio();show('level-screen');buildLevelGrid();startMusic();
+
+// === LEVEL SCREEN ===
+function buildLevelGrid(){
+  var grid=document.getElementById('levelGrid');
+  var title=document.querySelector('.level-title');
+  title.textContent=player?('Elige nivel, '+player+'!'):'Elige nivel';
+  grid.innerHTML=LEVELS.map(function(lv,i){
+    return '<div class="level-card'+(i===levelFocus?' selected':'')+'" data-idx="'+i+'">'+
+    '<span class="lnum">'+(i+1)+'</span>'+
+    '<span class="lemoji">'+lv.emoji+'</span>'+
+    '<span class="lname">'+lv.name+'</span>'+
+    '</div>';
+  }).join('');
+  document.querySelectorAll('.level-card').forEach(function(c){
+    c.onclick=function(){var idx=parseInt(c.dataset.idx);highlightLevel(idx);sndClick();selectLevel(idx)};
+  });
+}
+
+function highlightLevel(i){
+  levelFocus=((i%LEVELS.length)+LEVELS.length)%LEVELS.length;
+  document.querySelectorAll('.level-card').forEach(function(c,j){c.classList.toggle('selected',j===levelFocus)});
+}
+
+function selectLevel(idx){
+  currentLevel=LEVELS[idx];
+  show('game-screen');
+  startGame();
+}
+
+document.getElementById('levelsBtn').onclick=function(){sndClick();stopSpeech();removeWin();show('level-screen');buildLevelGrid()};
+
+// === PAIR SELECTION ===
+function pickPairs(count){
+  var pool=shuffle(PAIRS_REG.concat(PAIRS_SVG).concat(PAIRS_PAW));
+  return pool.slice(0,count);
+}
+
+// === RENDER CARD CONTENT ===
+function renderContent(pair,side){
+  var val=pair[side];
+  if(pair.isPaw&&side==='a'){
+    return '<img class="card-paw" src="'+val+'" alt="'+pair.hint+'">';
+  }
+  if(pair.isSvg&&side==='a'){
+    return '<div class="card-svg">'+val+'</div>';
+  }
+  return '<span class="card-emoji">'+val+'</span>';
+}
+
+// === START GAME ===
+function startGame(){
+  var lv=currentLevel;
+  totalPairs=lv.pairs;
+  currentCols=lv.cols;
+  matchedCount=0;
+  flipped=[];
+  locked=false;
+  focusIdx=0;
+
+  gamePairs=pickPairs(totalPairs);
+
+  // Create card array: 2 cards per pair
+  gameCards=[];
+  for(var i=0;i<gamePairs.length;i++){
+    gameCards.push({pairIdx:i,side:'a',matched:false});
+    gameCards.push({pairIdx:i,side:'b',matched:false});
+  }
+  gameCards=shuffle(gameCards);
+
+  renderBoard();
+  var pn=player?', '+player:'';
+  setTimeout(function(){speak('Encuentra las parejas'+pn+'!')},300);
+}
+
+// === RENDER BOARD ===
+function renderBoard(){
+  var area=document.getElementById('gameArea');
+  var pn=player?(', '+player+'!'):'!';
+  var maxW=currentCols*110+(currentCols-1)*10;
+
+  area.innerHTML=
+    '<div class="prompt">Encuentra las parejas'+pn+'</div>'+
+    '<div class="pair-counter">Parejas: <span id="pairCount">0/'+totalPairs+'</span></div>'+
+    '<div class="mem-grid" id="memGrid" style="grid-template-columns:repeat('+currentCols+',1fr);max-width:'+maxW+'px">'+
+    gameCards.map(function(card,i){
+      var pair=gamePairs[card.pairIdx];
+      return '<div class="mem-card'+(i===0?' selected':'')+'" data-idx="'+i+'">'+
+        '<div class="card-inner">'+
+          '<div class="card-face card-back">\u2753</div>'+
+          '<div class="card-face card-front">'+renderContent(pair,card.side)+'</div>'+
+        '</div></div>';
+    }).join('')+'</div>';
+
+  // Bind clicks
+  document.querySelectorAll('.mem-card').forEach(function(el){
+    el.onclick=function(){
+      var idx=parseInt(el.dataset.idx);
+      highlightCard(idx);
+      flipCard(idx);
+    };
+  });
+}
+
+// === CARD HIGHLIGHT (keyboard) ===
+function highlightCard(i){
+  var cards=document.querySelectorAll('.mem-card');
+  if(!cards.length)return;
+  focusIdx=((i%cards.length)+cards.length)%cards.length;
+  cards.forEach(function(c,j){c.classList.toggle('selected',j===focusIdx)});
+}
+
+// === FLIP CARD ===
+function flipCard(idx){
+  if(locked)return;
+  var card=gameCards[idx];
+  if(!card||card.matched)return;
+  // Don't flip if already in flipped array
+  if(flipped.indexOf(idx)!==-1)return;
+  // Max 2 flipped
+  if(flipped.length>=2)return;
+
+  var el=document.querySelectorAll('.mem-card')[idx];
+  if(!el)return;
+
+  el.classList.add('flipped');
+  sndFlip();
+  flipped.push(idx);
+
+  if(flipped.length===2){
+    locked=true;
+    setTimeout(checkMatch,600);
+  }
+}
+
+// === CHECK MATCH ===
+function checkMatch(){
+  var idx1=flipped[0],idx2=flipped[1];
+  var c1=gameCards[idx1],c2=gameCards[idx2];
+  var el1=document.querySelectorAll('.mem-card')[idx1];
+  var el2=document.querySelectorAll('.mem-card')[idx2];
+
+  if(c1.pairIdx===c2.pairIdx){
+    // Match!
+    c1.matched=true;
+    c2.matched=true;
+    matchedCount++;
+    stars++;streak++;
+
+    el1.classList.add('matched');
+    el2.classList.add('matched');
+    sndCorrect();
+
+    document.getElementById('starCount').textContent='\u2B50 '+stars;
+    document.getElementById('pairCount').textContent=matchedCount+'/'+totalPairs;
+
+    var pair=gamePairs[c1.pairIdx];
+    var pn=player?(' '+player+'!'):'!';
+    showFeedback(MSGS_OK[Math.floor(Math.random()*MSGS_OK.length)],false);
+    stopSpeech();
+    speak(SPEECH_OK[Math.floor(Math.random()*SPEECH_OK.length)]+pn+' Son '+pair.hint+'!');
+
+    spawnStars(el1);
+    spawnStars(el2);
+    if(streak%3===0)spawnConf();
+
+    flipped=[];
+    locked=false;
+
+    // Check win
+    if(matchedCount===totalPairs){
+      setTimeout(showWin,1200);
+    }
+  } else {
+    // No match
+    sndWrong();
+    streak=0;
+    el1.classList.add('no-match');
+    el2.classList.add('no-match');
+
+    setTimeout(function(){
+      el1.classList.remove('flipped','no-match');
+      el2.classList.remove('flipped','no-match');
+      flipped=[];
+      locked=false;
+    },1200);
+  }
+}
+
+// === WIN ===
+function showWin(){
+  spawnConf();spawnConf();
+  sndCeleb();
+
+  var pn=player||'';
+  stopSpeech();
+  speak('Ganaste '+pn+'! Encontraste todas las parejas! Eres incre\u00EDble!');
+
+  var overlay=document.createElement('div');
+  overlay.className='win-overlay';
+  overlay.id='winOverlay';
+  overlay.innerHTML=
+    '<div class="win-box">'+
+      '<div class="win-text">\uD83C\uDF89 GANASTE! \uD83C\uDF89</div>'+
+      '<div class="win-sub">\u2B50 '+stars+' estrellas</div>'+
+      '<div class="win-btns">'+
+        '<button class="win-btn primary" id="playAgain">Otra vez!</button>'+
+        '<button class="win-btn secondary" id="goLevels">Niveles</button>'+
+      '</div>'+
+    '</div>';
+  document.body.appendChild(overlay);
+
+  document.getElementById('playAgain').onclick=function(){removeWin();startGame()};
+  document.getElementById('goLevels').onclick=function(){removeWin();show('level-screen');buildLevelGrid()};
+}
+
+function removeWin(){
+  var w=document.getElementById('winOverlay');
+  if(w)w.remove();
+}
+
+// === KEYBOARD ===
+window.addEventListener('keydown',function(e){
+  initAudio();
+  // Level screen
+  if(!document.getElementById('level-screen').classList.contains('hidden')){
+    if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();highlightLevel(levelFocus+1)}
+    else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();highlightLevel(levelFocus-1)}
+    else if(e.key==='Enter'){e.preventDefault();sndClick();selectLevel(levelFocus)}
+    else if(e.key>='1'&&e.key<='3'){e.preventDefault();sndClick();selectLevel(parseInt(e.key)-1)}
+    else if(e.key==='Escape'){e.preventDefault();window.location.href='juegos.html'}
+    return;
+  }
+  // Game screen
+  if(!document.getElementById('game-screen').classList.contains('hidden')){
+    // Win overlay active
+    if(document.getElementById('winOverlay')){
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();document.getElementById('playAgain').click()}
+      else if(e.key==='Escape'){e.preventDefault();document.getElementById('goLevels').click()}
+      return;
+    }
+    if(e.key==='Escape'){e.preventDefault();sndClick();stopSpeech();removeWin();show('level-screen');buildLevelGrid();return}
+    if(locked)return;
+    var total=gameCards.length;
+    if(e.key==='ArrowRight'){e.preventDefault();highlightCard(focusIdx+1)}
+    else if(e.key==='ArrowLeft'){e.preventDefault();highlightCard(focusIdx-1)}
+    else if(e.key==='ArrowDown'){e.preventDefault();highlightCard(focusIdx+currentCols)}
+    else if(e.key==='ArrowUp'){e.preventDefault();highlightCard(focusIdx-currentCols)}
+    else if(e.key==='Enter'||e.key===' '){e.preventDefault();flipCard(focusIdx)}
+  }
+});
+
+// First interaction to init audio
+document.addEventListener('click',function(){initAudio()},{once:true});
+
+// === FEEDBACK ===
+var fbTimer=null;
+function showFeedback(msg,isRetry){
+  var fb=document.getElementById('feedback');
+  var txt=document.getElementById('fbText');
+  if(fbTimer)clearTimeout(fbTimer);
+  txt.textContent=msg;
+  txt.className='fb-text'+(isRetry?' retry':'');
+  fb.classList.remove('hidden');
+  txt.style.animation='none';void txt.offsetWidth;txt.style.animation='fbPop .6s cubic-bezier(.34,1.56,.64,1) forwards';
+  fbTimer=setTimeout(function(){fb.classList.add('hidden');fbTimer=null},isRetry?2500:900);
+}
+
+// === PARTICLES ===
+function spawnStars(el){
+  var rect=el.getBoundingClientRect();
+  for(var i=0;i<5;i++){
+    var s=document.createElement('div');s.className='star-particle';
+    s.textContent='\u2B50';
+    s.style.left=(rect.left+rect.width/2-16+Math.random()*40-20)+'px';
+    s.style.top=(rect.top-10)+'px';
+    s.style.animationDelay=(i*.08)+'s';
+    document.body.appendChild(s);setTimeout(function(el){el.remove()},1200,s);
+  }
+}
+
+function spawnConf(){
+  sndCeleb();
+  var cols=['#FF6B9D','#FFD54F','#4FC3F7','#66BB6A','#CE93D8','#FF8A65','#EF5350'];
+  for(var i=0;i<40;i++){
+    var p=document.createElement('div');p.className='confetti';
+    p.style.cssText='left:'+Math.random()*100+'vw;top:-20px;width:'+(8+Math.random()*10)+'px;height:'+(8+Math.random()*10)+'px;background:'+cols[i%7]+';border-radius:'+(Math.random()>.5?'50%':'2px')+';animation-duration:'+(2+Math.random()*3)+'s;animation-delay:'+Math.random()*1.5+'s';
+    document.body.appendChild(p);setTimeout(function(el){el.remove()},6000,p);
+  }
+}
+
+function shuffle(arr){var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=a[i];a[i]=a[j];a[j]=tmp}return a}
+</script>
+</body>
+</html>

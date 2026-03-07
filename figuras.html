@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mis Juegos">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Figuras y Colores - Mis Juegos</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@400;600;700&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Fredoka',sans-serif;overflow:hidden;background:#E3F2FD;user-select:none;touch-action:none;-webkit-touch-callout:none}
+  .screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s;z-index:10}
+  .screen.hidden{opacity:0;pointer-events:none}
+  .back-btn{position:fixed;top:14px;left:14px;z-index:40;padding:8px 18px;font-family:'Bubblegum Sans',cursive;font-size:1.1rem;color:#fff;background:rgba(0,0,0,.3);border:3px solid rgba(255,255,255,.5);border-radius:25px;cursor:pointer;text-decoration:none;transition:all .15s;backdrop-filter:blur(4px)}
+  .back-btn:hover{background:rgba(0,0,0,.5)}
+  .levels-btn{position:fixed;top:14px;left:14px;z-index:40;padding:8px 18px;font-family:'Bubblegum Sans',cursive;font-size:1.1rem;color:#fff;background:rgba(0,0,0,.3);border:3px solid rgba(255,255,255,.5);border-radius:25px;cursor:pointer;text-decoration:none;transition:all .15s;backdrop-filter:blur(4px)}
+  .levels-btn:hover{background:rgba(0,0,0,.5)}
+
+  /* === LEVEL SCREEN === */
+  #level-screen{background:linear-gradient(180deg,#E3F2FD,#BBDEFB,#E1BEE7)}
+  .level-title{font-family:'Bubblegum Sans',cursive;font-size:clamp(1.8rem,5vw,3rem);color:#fff;text-shadow:3px 3px 0 #42A5F5;margin-bottom:24px}
+  .level-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;max-width:750px;width:92%}
+  @media(max-width:600px){.level-grid{grid-template-columns:repeat(2,1fr);gap:10px}}
+  .level-card{background:#fff;border-radius:22px;padding:18px 10px;text-align:center;cursor:pointer;border:4px solid transparent;box-shadow:0 6px 20px rgba(0,0,0,.12);transition:all .3s cubic-bezier(.34,1.56,.64,1);position:relative}
+  .level-card:hover{transform:translateY(-8px) scale(1.05);border-color:#FFD54F}
+  .level-card.selected{transform:translateY(-8px) scale(1.05);border-color:#FFD54F}
+  .level-card .lemoji{font-size:3rem;display:block;margin-bottom:6px}
+  .level-card .lname{font-family:'Bubblegum Sans',cursive;font-size:1.1rem;color:#42A5F5}
+  .level-card .lnum{position:absolute;top:-8px;left:-8px;width:28px;height:28px;background:#42A5F5;color:#fff;border-radius:50%;font-family:'Bubblegum Sans',cursive;font-size:.95rem;display:flex;align-items:center;justify-content:center}
+
+  /* === GAME SCREEN === */
+  #game-screen{background:linear-gradient(180deg,#E3F2FD,#BBDEFB,#E1BEE7)}
+  .game-area{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;width:92%;max-width:600px}
+
+  .prompt{font-family:'Bubblegum Sans',cursive;font-size:clamp(1.4rem,4vw,2.2rem);color:#fff;text-shadow:2px 2px 0 #42A5F5;text-align:center}
+  @keyframes charPop{0%{transform:scale(0);opacity:0}100%{transform:scale(1);opacity:1}}
+
+  /* === SHAPE CARDS === */
+  .shape-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;width:100%;max-width:500px;justify-items:center}
+  @media(min-width:600px){.shape-grid.cols-3{grid-template-columns:repeat(3,1fr)}}
+  .shape-card{background:rgba(255,255,255,.25);border-radius:22px;padding:16px;cursor:pointer;border:5px solid transparent;box-shadow:0 4px 15px rgba(0,0,0,.08);transition:all .2s cubic-bezier(.34,1.56,.64,1);display:flex;align-items:center;justify-content:center;min-width:90px;min-height:90px;animation:charPop .4s cubic-bezier(.34,1.56,.64,1) both;position:relative}
+  .shape-card .snum{position:absolute;top:-6px;left:-6px;width:24px;height:24px;background:#42A5F5;color:#fff;border-radius:50%;font-family:'Bubblegum Sans',cursive;font-size:.85rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+  .shape-card:hover{transform:translateY(-4px) scale(1.05);border-color:#FFD54F}
+  .shape-card.selected{border-color:#FFD54F;transform:translateY(-4px) scale(1.05)}
+  .shape-card.correct{background:rgba(102,187,106,.3);border-color:#43A047;transform:scale(1.1)}
+  .shape-card.wrong{background:rgba(239,154,154,.3);border-color:#EF5350;animation:shake .4s}
+  .shape-card.hint{border-color:#66BB6A;background:rgba(102,187,106,.15)}
+  .shape-card svg{width:clamp(60px,15vw,120px);height:clamp(60px,15vw,120px);filter:drop-shadow(2px 4px 6px rgba(0,0,0,.15))}
+  .big-shape{display:flex;align-items:center;justify-content:center;margin:10px 0}
+  .big-shape svg{width:clamp(100px,25vw,180px);height:clamp(100px,25vw,180px);filter:drop-shadow(3px 6px 10px rgba(0,0,0,.2));animation:charPop .4s cubic-bezier(.34,1.56,.64,1)}
+
+  /* === NUMBER OPTIONS (count sides) === */
+  .options{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;width:100%;max-width:400px}
+  .opt-btn{background:#fff;border:5px solid transparent;border-radius:22px;padding:18px 10px;font-family:'Bubblegum Sans',cursive;font-size:clamp(2rem,6vw,3.5rem);color:#1565C0;cursor:pointer;box-shadow:0 6px 20px rgba(0,0,0,.1);transition:all .2s cubic-bezier(.34,1.56,.64,1);text-align:center;line-height:1.1;position:relative}
+  .opt-btn .snum{position:absolute;top:-6px;left:-6px;width:24px;height:24px;background:#42A5F5;color:#fff;border-radius:50%;font-family:'Bubblegum Sans',cursive;font-size:.85rem;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+  .opt-btn:hover{transform:translateY(-4px) scale(1.05);border-color:#FFD54F}
+  .opt-btn.selected{border-color:#FFD54F;transform:translateY(-4px) scale(1.05)}
+  .opt-btn.correct{background:#66BB6A;color:#fff;border-color:#43A047;transform:scale(1.1)}
+  .opt-btn.wrong{background:#EF9A9A;border-color:#EF5350;animation:shake .4s}
+  .opt-btn.hint{border-color:#66BB6A;background:#E8F5E9}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+  .paw-img{width:50px;height:50px;border-radius:50%;object-fit:cover;border:3px solid #FFD54F;box-shadow:0 2px 8px rgba(0,0,0,.15);margin-bottom:8px}
+
+  .hud{position:fixed;top:14px;right:14px;z-index:20;display:flex;gap:10px;align-items:center}
+  .star-count{background:rgba(255,255,255,.9);border-radius:20px;padding:6px 16px;font-family:'Bubblegum Sans',cursive;font-size:1.2rem;color:#FFB300;box-shadow:0 3px 10px rgba(0,0,0,.1)}
+
+  .feedback{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:30;pointer-events:none;transition:opacity .3s}
+  .feedback.hidden{opacity:0;pointer-events:none}
+  .fb-text{font-family:'Bubblegum Sans',cursive;font-size:clamp(3rem,10vw,6rem);color:#fff;text-shadow:4px 4px 0 #66BB6A,8px 8px 0 #43A047;animation:fbPop .6s cubic-bezier(.34,1.56,.64,1) forwards}
+  .fb-text.retry{text-shadow:4px 4px 0 #42A5F5,8px 8px 0 #1565C0;font-size:clamp(1.8rem,5vw,3rem)}
+  @keyframes fbPop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.1);opacity:1}100%{transform:scale(1);opacity:0}}
+
+  .confetti{position:fixed;z-index:25;animation:fall linear forwards}
+  @keyframes fall{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+  .star-particle{position:fixed;z-index:28;pointer-events:none;font-size:2rem;animation:starFloat 1s ease-out forwards}
+  @keyframes starFloat{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-80px) scale(0);opacity:0}}
+</style>
+</head>
+<body>
+<a href="juegos.html" class="back-btn">Volver</a>
+
+<div id="level-screen" class="screen hidden">
+  <div class="level-title">Elige nivel</div>
+  <div class="level-grid" id="levelGrid"></div>
+</div>
+
+<div id="game-screen" class="screen hidden">
+  <div class="hud"><div class="star-count" id="starCount">⭐ 0</div></div>
+  <button class="levels-btn" id="levelsBtn">Niveles</button>
+  <div class="game-area" id="gameArea"></div>
+</div>
+
+<div class="feedback hidden" id="feedback"><div class="fb-text" id="fbText">BIEN!</div></div>
+
+<script>
+// === AUDIO ===
+var AC=window.AudioContext||window.webkitAudioContext;var ac;
+function initAudio(){if(!ac)ac=new AC();if(ac.state==='suspended')ac.resume()}
+function tone(f,d,t,v){t=t||'sine';v=v||.1;if(!ac)return;var o=ac.createOscillator(),g=ac.createGain();o.type=t;o.frequency.value=f;g.gain.value=v;g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}
+function sndCorrect(){tone(523,.1,'sine',.12);setTimeout(function(){tone(659,.1,'sine',.1)},80);setTimeout(function(){tone(784,.15,'sine',.1)},160)}
+function sndWrong(){tone(300,.2,'sawtooth',.15);setTimeout(function(){tone(250,.25,'sawtooth',.12)},100)}
+function sndClick(){tone(500,.04,'sine',.08)}
+function sndCeleb(){[523,659,784,1047,784,1047,1319].forEach(function(n,i){setTimeout(function(){tone(n,.2,'sine',.07)},i*120)})}
+
+// === SPEECH (Amazon Polly via proxy + Web Speech API fallback) ===
+var ttsOk=true,ttsFails=0,activeTTSAudios=[],cachedVoice=null;
+function scoreVoice(v){
+  var s=0,name=(v.name||'').toLowerCase(),lang=v.lang||'',uri=(v.voiceURI||'').toLowerCase();
+  if(!lang.startsWith('es'))return -1;
+  if(/premium|enhanced|neural|natural|siri|online/i.test(name)||/ttsbundle/i.test(uri))s+=100;
+  if(/compact/i.test(uri))s-=30;
+  if(/es[-_](MX|US|419)/i.test(lang))s+=60;else if(/es[-_](CO|AR|CL|PE|VE)/i.test(lang))s+=50;else if(/es[-_]ES/i.test(lang))s+=5;else s+=20;
+  if(/female|paulina|penelope|elena|karla|angelica|jimena|monica|sofia|dalia|paloma|mia|lupe|lucia/i.test(name))s+=30;
+  return s;
+}
+function pickVoice(){
+  if(cachedVoice)return cachedVoice;
+  var voices=window.speechSynthesis.getVoices();if(!voices.length)return null;
+  var best=null,bs=-1;for(var i=0;i<voices.length;i++){var s=scoreVoice(voices[i]);if(s>bs){bs=s;best=voices[i]}}
+  if(best)cachedVoice=best;return cachedVoice;
+}
+function stopSpeech(){
+  activeTTSAudios.forEach(function(a){a.pause();a.src=''});
+  activeTTSAudios=[];
+  if('speechSynthesis' in window)window.speechSynthesis.cancel();
+}
+function speakLocal(text){
+  if(!('speechSynthesis' in window))return;
+  var u=new SpeechSynthesisUtterance(text);u.lang='es-MX';u.rate=.85;u.pitch=1.1;
+  var v=pickVoice();if(v){u.voice=v;if(/premium|enhanced|neural|siri/i.test(v.name)){u.pitch=1.05;u.rate=.9}}
+  window.speechSynthesis.speak(u);
+}
+function speak(text){
+  if(ttsOk||ttsFails>=10){
+    if(ttsFails>=10)ttsFails=0;
+    fetch('/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({voice:'Mia',text:text,service:'polly'})})
+    .then(function(r){return r.json()}).then(function(d){
+      if(d.success&&d.speak_url){
+        ttsOk=true;ttsFails=0;
+        var audio=new Audio(d.speak_url);
+        activeTTSAudios.push(audio);
+        audio.onended=function(){activeTTSAudios=activeTTSAudios.filter(function(a){return a!==audio})};
+        audio.play();
+      }
+      else throw 0;
+    }).catch(function(){ttsOk=false;ttsFails++;speakLocal(text)});
+    return;
+  }
+  ttsFails++;
+  speakLocal(text);
+}
+if('speechSynthesis' in window){window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=function(){cachedVoice=null;pickVoice()}}
+
+// === BACKGROUND MUSIC (MP3 - "Monkeys Spinning Monkeys" Kevin MacLeod, CC BY 4.0) ===
+var musicAudio=null;
+function startMusic(){
+  if(musicAudio)return;
+  musicAudio=new Audio('music/fun.mp3');
+  musicAudio.loop=true;musicAudio.volume=0.18;
+  musicAudio.play().catch(function(){});
+}
+function stopMusic(){if(musicAudio){musicAudio.pause();musicAudio.currentTime=0;musicAudio=null;}}
+
+// === DATA ===
+var SHAPES=[
+  {id:'circulo',name:'circulo',fem:false,sides:0,svg:function(c){return '<circle cx="60" cy="60" r="50" fill="'+c+'" stroke="#fff" stroke-width="3"/>'}},
+  {id:'cuadrado',name:'cuadrado',fem:false,sides:4,svg:function(c){return '<rect x="10" y="10" width="100" height="100" rx="4" fill="'+c+'" stroke="#fff" stroke-width="3"/>'}},
+  {id:'triangulo',name:'triangulo',fem:false,sides:3,svg:function(c){return '<polygon points="60,10 110,110 10,110" fill="'+c+'" stroke="#fff" stroke-width="3"/>'}},
+  {id:'estrella',name:'estrella',fem:true,sides:10,svg:function(c){return '<polygon points="60,5 72,45 115,45 80,70 92,110 60,85 28,110 40,70 5,45 48,45" fill="'+c+'" stroke="#fff" stroke-width="3"/>'}},
+  {id:'rectangulo',name:'rectangulo',fem:false,sides:4,svg:function(c){return '<rect x="5" y="25" width="110" height="70" rx="4" fill="'+c+'" stroke="#fff" stroke-width="3"/>'}},
+  {id:'ovalo',name:'ovalo',fem:false,sides:0,svg:function(c){return '<ellipse cx="60" cy="60" rx="55" ry="38" fill="'+c+'" stroke="#fff" stroke-width="3"/>'}},
+  {id:'corazon',name:'corazon',fem:false,sides:0,svg:function(c){return '<path d="M60,100 C20,70 0,40 20,20 C40,0 60,15 60,35 C60,15 80,0 100,20 C120,40 100,70 60,100Z" fill="'+c+'" stroke="#fff" stroke-width="3"/>'}},
+  {id:'diamante',name:'diamante',fem:false,sides:4,svg:function(c){return '<polygon points="60,5 115,60 60,115 5,60" fill="'+c+'" stroke="#fff" stroke-width="3"/>'}},
+  {id:'pentagono',name:'pentagono',fem:false,sides:5,svg:function(c){return '<polygon points="60,5 115,40 95,105 25,105 5,40" fill="'+c+'" stroke="#fff" stroke-width="3"/>'}},
+  {id:'hexagono',name:'hexagono',fem:false,sides:6,svg:function(c){return '<polygon points="90,10 115,60 90,110 30,110 5,60 30,10" fill="'+c+'" stroke="#fff" stroke-width="3"/>'}},
+  {id:'trapecio',name:'trapecio',fem:false,sides:4,svg:function(c){return '<polygon points="35,15 85,15 115,105 5,105" fill="'+c+'" stroke="#fff" stroke-width="3"/>'}},
+  {id:'flecha',name:'flecha',fem:true,sides:7,svg:function(c){return '<polygon points="60,5 110,50 85,50 85,115 35,115 35,50 10,50" fill="'+c+'" stroke="#fff" stroke-width="3"/>'}},
+];
+
+var COLORS=[
+  {id:'rojo',name:'roja',masc:'rojo',hex:'#EF5350'},
+  {id:'azul',name:'azul',masc:'azul',hex:'#42A5F5'},
+  {id:'amarillo',name:'amarilla',masc:'amarillo',hex:'#FFD54F'},
+  {id:'verde',name:'verde',masc:'verde',hex:'#66BB6A'},
+  {id:'naranja',name:'naranja',masc:'naranja',hex:'#FF8A65'},
+  {id:'morado',name:'morada',masc:'morado',hex:'#AB47BC'},
+  {id:'rosa',name:'rosa',masc:'rosa',hex:'#F48FB1'},
+  {id:'celeste',name:'celeste',masc:'celeste',hex:'#4FC3F7'},
+];
+
+var ROUNDS_ALL=['shape','color','sides','combo','different'];
+var LEVELS=[
+  {name:'Facil',emoji:'\u2B50',shapes:3,colors:3,rounds:ROUNDS_ALL,opts:3},
+  {name:'Normal',emoji:'\u{1F338}',shapes:5,colors:5,rounds:ROUNDS_ALL,opts:3},
+  {name:'Dificil',emoji:'\u{1F536}',shapes:8,colors:8,rounds:ROUNDS_ALL,opts:4},
+  {name:'Experto',emoji:'\u{1F525}',shapes:12,colors:8,rounds:ROUNDS_ALL,opts:4},
+  {name:'Campeon',emoji:'\u{1F3C6}',shapes:12,colors:8,rounds:ROUNDS_ALL,opts:5},
+];
+
+var PAW_PATROL=[
+  {name:'Chase',img:'paw/chase.jpg'},
+  {name:'Marshall',img:'paw/marshall.jpg'},
+  {name:'Skye',img:'paw/skye.jpg'},
+  {name:'Rubble',img:'paw/rubble.jpg'},
+  {name:'Zuma',img:'paw/zuma.jpg'},
+  {name:'Rocky',img:'paw/rocky.jpg'},
+  {name:'Everest',img:'paw/everest.jpg'},
+];
+
+var MSGS_OK=['BIEN!','GENIAL!','SUPER!','BRAVO!','PERFECTO!'];
+var MSGS_RETRY=['Aaay no!','Uy uy uy!','Epa!','Nooo!','Casi!'];
+var SPEECH_RETRY=['Aaay que mal, intenta de nuevo','Uy uy uy, esa no es','Nooo, intenta otra vez','Epa, casi casi','Aaay no, prueba otra'];
+
+// === PLAYER ===
+var player=sessionStorage.getItem('jugadora')||'';
+
+// === STATE ===
+var stars=0,streak=0,currentRound=null,locked=false,focusIdx=0;
+var currentLevel=null,levelFocus=0;
+
+// === SCREEN MANAGEMENT ===
+function show(id){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.add('hidden')});
+  document.getElementById(id).classList.remove('hidden');
+  var backBtn=document.querySelector('.back-btn');
+  var levelsBtn=document.getElementById('levelsBtn');
+  if(id==='game-screen'){backBtn.style.display='none';levelsBtn.style.display='block';}
+  else{backBtn.style.display='block';levelsBtn.style.display='none';}
+}
+
+initAudio();show('level-screen');buildLevelGrid();startMusic();
+
+// === LEVEL SCREEN ===
+function buildLevelGrid(){
+  var grid=document.getElementById('levelGrid');
+  var title=document.querySelector('.level-title');
+  title.textContent=player?('Elige nivel, '+player+'!'):'Elige nivel';
+  grid.innerHTML=LEVELS.map(function(lv,i){
+    return '<div class="level-card'+(i===levelFocus?' selected':'')+'" data-idx="'+i+'">'+
+    '<span class="lnum">'+(i+1)+'</span>'+
+    '<span class="lemoji">'+lv.emoji+'</span>'+
+    '<span class="lname">'+lv.name+'</span>'+
+    '</div>';
+  }).join('');
+  document.querySelectorAll('.level-card').forEach(function(c){
+    c.onclick=function(){var idx=parseInt(c.dataset.idx);highlightLevel(idx);sndClick();selectLevel(idx)};
+  });
+}
+
+function highlightLevel(i){
+  levelFocus=((i%LEVELS.length)+LEVELS.length)%LEVELS.length;
+  document.querySelectorAll('.level-card').forEach(function(c,j){c.classList.toggle('selected',j===levelFocus)});
+}
+
+function selectLevel(idx){
+  currentLevel=LEVELS[idx];
+  show('game-screen');
+  nextRound();
+}
+
+document.getElementById('levelsBtn').onclick=function(){sndClick();stopSpeech();show('level-screen');buildLevelGrid()};
+
+// === SVG HELPER ===
+function renderSVG(shape,color,size){
+  size=size||120;
+  return '<svg viewBox="0 0 120 120" width="'+size+'" height="'+size+'">'+shape.svg(color)+'</svg>';
+}
+
+// === ROUND DISPATCHER ===
+function nextRound(){
+  locked=false;focusIdx=0;stopSpeech();
+  var lv=currentLevel;
+  var pick=lv.rounds[Math.floor(Math.random()*lv.rounds.length)];
+  if(pick==='shape') roundShape();
+  else if(pick==='color') roundColor();
+  else if(pick==='sides') roundSides();
+  else if(pick==='combo') roundCombo();
+  else roundDifferent();
+}
+
+// === ROUND 1: IDENTIFY SHAPE ===
+function roundShape(){
+  var lv=currentLevel;
+  var pool=SHAPES.slice(0,lv.shapes);
+  var colPool=COLORS.slice(0,lv.colors);
+  var target=pool[Math.floor(Math.random()*pool.length)];
+  var color=colPool[Math.floor(Math.random()*colPool.length)];
+  var distractors=[],tries=0;
+  while(distractors.length<lv.opts-1&&tries<100){
+    tries++;
+    var d=pool[Math.floor(Math.random()*pool.length)];
+    if(d.id!==target.id&&!distractors.some(function(x){return x.id===d.id}))distractors.push(d);
+  }
+  var opts=shuffle([target].concat(distractors));
+  currentRound={type:'shape',answer:target.id,opts:opts,color:color.hex,targetName:target.name,fem:target.fem};
+  renderShapeRound();
+}
+
+function renderShapeRound(){
+  var r=currentRound;
+  var area=document.getElementById('gameArea');
+  var pn=player?', '+player:'';
+  var pw=Math.random()<0.3?PAW_PATROL[Math.floor(Math.random()*PAW_PATROL.length)]:null;
+  var pawHtml=pw?'<img class="paw-img" src="'+pw.img+'" alt="'+pw.name+'">':'';
+  var colsClass=r.opts.length>=3?' cols-3':'';
+  area.innerHTML=
+    pawHtml+
+    '<div class="prompt">Toca '+(r.fem?'la':'el')+' '+r.targetName+'!</div>'+
+    '<div class="shape-grid'+colsClass+'" id="opts">'+
+    r.opts.map(function(s,i){
+      return '<div class="shape-card" data-val="'+s.id+'" data-idx="'+i+'" style="animation-delay:'+(i*0.08)+'s"><span class="snum">'+(i+1)+'</span>'+renderSVG(s,r.color)+'</div>';
+    }).join('')+'</div>';
+  bindShapeOpts();
+  highlightShape(0);
+  speak('Toca '+(r.fem?'la':'el')+' '+r.targetName+pn);
+}
+
+// === ROUND 2: IDENTIFY COLOR ===
+function roundColor(){
+  var lv=currentLevel;
+  var pool=SHAPES.slice(0,lv.shapes);
+  var colPool=COLORS.slice(0,lv.colors);
+  var targetColor=colPool[Math.floor(Math.random()*colPool.length)];
+  var shape=pool[Math.floor(Math.random()*pool.length)];
+  var distractors=[],tries=0;
+  while(distractors.length<lv.opts-1&&tries<100){
+    tries++;
+    var d=colPool[Math.floor(Math.random()*colPool.length)];
+    if(d.id!==targetColor.id&&!distractors.some(function(x){return x.id===d.id}))distractors.push(d);
+  }
+  var opts=shuffle([targetColor].concat(distractors));
+  currentRound={type:'color',answer:targetColor.id,opts:opts.map(function(c){return {colorObj:c,shape:shape}}),targetName:targetColor.name};
+  renderColorRound();
+}
+
+function renderColorRound(){
+  var r=currentRound;
+  var area=document.getElementById('gameArea');
+  var pn=player?', '+player:'';
+  var pw=Math.random()<0.3?PAW_PATROL[Math.floor(Math.random()*PAW_PATROL.length)]:null;
+  var pawHtml=pw?'<img class="paw-img" src="'+pw.img+'" alt="'+pw.name+'">':'';
+  var colsClass=r.opts.length>=3?' cols-3':'';
+  area.innerHTML=
+    pawHtml+
+    '<div class="prompt">Toca la '+r.targetName+'!</div>'+
+    '<div class="shape-grid'+colsClass+'" id="opts">'+
+    r.opts.map(function(o,i){
+      return '<div class="shape-card" data-val="'+o.colorObj.id+'" data-idx="'+i+'" style="animation-delay:'+(i*0.08)+'s"><span class="snum">'+(i+1)+'</span>'+renderSVG(o.shape,o.colorObj.hex)+'</div>';
+    }).join('')+'</div>';
+  bindShapeOpts();
+  highlightShape(0);
+  speak('Toca la '+r.targetName+pn);
+}
+
+// === ROUND 3: COUNT SIDES ===
+function roundSides(){
+  var lv=currentLevel;
+  var pool=SHAPES.slice(0,lv.shapes);
+  var colPool=COLORS.slice(0,lv.colors);
+  var target=pool[Math.floor(Math.random()*pool.length)];
+  var color=colPool[Math.floor(Math.random()*colPool.length)];
+  var answer=String(target.sides);
+  var possibleSides=['0','3','4','5','6','7','10'];
+  var distractors=[],tries=0;
+  while(distractors.length<lv.opts-1&&tries<100){
+    tries++;
+    var d=possibleSides[Math.floor(Math.random()*possibleSides.length)];
+    if(d!==answer&&distractors.indexOf(d)===-1)distractors.push(d);
+  }
+  var opts=shuffle([answer].concat(distractors));
+  currentRound={type:'sides',answer:answer,opts:opts,shape:target,color:color.hex,targetName:target.name,fem:target.fem};
+  renderSidesRound();
+}
+
+function renderSidesRound(){
+  var r=currentRound;
+  var area=document.getElementById('gameArea');
+  var pn=player?', '+player:'';
+  area.innerHTML=
+    '<div class="prompt">Cuantos lados tiene?</div>'+
+    '<div class="big-shape">'+renderSVG(r.shape,r.color,160)+'</div>'+
+    '<div class="options" id="opts">'+
+    r.opts.map(function(o,i){return '<button class="opt-btn" data-val="'+o+'" data-idx="'+i+'"><span class="snum">'+(i+1)+'</span>'+o+'</button>'}).join('')+'</div>';
+  bindNumberOpts();
+  highlightOpt(0);
+  speak('Cuantos lados tiene '+(r.fem?'la':'el')+' '+r.targetName+pn+'?');
+}
+
+// === ROUND 4: SHAPE + COLOR COMBO ===
+function roundCombo(){
+  var lv=currentLevel;
+  var shapePool=SHAPES.slice(0,lv.shapes);
+  var colPool=COLORS.slice(0,lv.colors);
+  var targetShape=shapePool[Math.floor(Math.random()*shapePool.length)];
+  var targetColor=colPool[Math.floor(Math.random()*colPool.length)];
+  var opts=[{shape:targetShape,color:targetColor}];
+  var tries=0;
+  while(opts.length<lv.opts&&tries<200){
+    tries++;
+    var s=shapePool[Math.floor(Math.random()*shapePool.length)];
+    var c=colPool[Math.floor(Math.random()*colPool.length)];
+    if(s.id===targetShape.id&&c.id===targetColor.id)continue;
+    if(!opts.some(function(o){return o.shape.id===s.id&&o.color.id===c.id}))opts.push({shape:s,color:c});
+  }
+  var shuffled=shuffle(opts);
+  currentRound={type:'combo',answer:targetShape.id+'_'+targetColor.id,opts:shuffled,targetShape:targetShape,targetColor:targetColor,targetName:targetShape.name+' '+(targetShape.fem?targetColor.name:targetColor.masc),fem:targetShape.fem};
+  renderComboRound();
+}
+
+function renderComboRound(){
+  var r=currentRound;
+  var area=document.getElementById('gameArea');
+  var pn=player?', '+player:'';
+  var pw=Math.random()<0.3?PAW_PATROL[Math.floor(Math.random()*PAW_PATROL.length)]:null;
+  var pawHtml=pw?'<img class="paw-img" src="'+pw.img+'" alt="'+pw.name+'">':'';
+  var colsClass=r.opts.length>=3?' cols-3':'';
+  area.innerHTML=
+    pawHtml+
+    '<div class="prompt">Toca '+(r.fem?'la':'el')+' '+r.targetName+'!</div>'+
+    '<div class="shape-grid'+colsClass+'" id="opts">'+
+    r.opts.map(function(o,i){
+      return '<div class="shape-card" data-val="'+o.shape.id+'_'+o.color.id+'" data-idx="'+i+'" style="animation-delay:'+(i*0.08)+'s"><span class="snum">'+(i+1)+'</span>'+renderSVG(o.shape,o.color.hex)+'</div>';
+    }).join('')+'</div>';
+  bindShapeOpts();
+  highlightShape(0);
+  speak('Toca '+(r.fem?'la':'el')+' '+r.targetName+pn);
+}
+
+// === ROUND 5: FIND THE DIFFERENT ===
+function roundDifferent(){
+  var lv=currentLevel;
+  var shapePool=SHAPES.slice(0,lv.shapes);
+  var colPool=COLORS.slice(0,lv.colors);
+  var baseShape=shapePool[Math.floor(Math.random()*shapePool.length)];
+  var baseColor=colPool[Math.floor(Math.random()*colPool.length)];
+  var diffByShape=Math.random()<0.5;
+  var oddShape,oddColor;
+  if(diffByShape){
+    oddColor=baseColor;
+    do{oddShape=shapePool[Math.floor(Math.random()*shapePool.length)]}while(oddShape.id===baseShape.id);
+  } else {
+    oddShape=baseShape;
+    do{oddColor=colPool[Math.floor(Math.random()*colPool.length)]}while(oddColor.id===baseColor.id);
+  }
+  var oddIdx=Math.floor(Math.random()*4);
+  var opts=[];
+  for(var i=0;i<4;i++){
+    if(i===oddIdx)opts.push({shape:oddShape,color:oddColor,isOdd:true});
+    else opts.push({shape:baseShape,color:baseColor,isOdd:false});
+  }
+  currentRound={type:'different',answer:String(oddIdx),opts:opts,targetName:'la diferente'};
+  renderDifferentRound();
+}
+
+function renderDifferentRound(){
+  var r=currentRound;
+  var area=document.getElementById('gameArea');
+  var pn=player?', '+player:'';
+  area.innerHTML=
+    '<div class="prompt">Cual es diferente?</div>'+
+    '<div class="shape-grid" id="opts">'+
+    r.opts.map(function(o,i){
+      return '<div class="shape-card" data-val="'+i+'" data-idx="'+i+'" style="animation-delay:'+(i*0.08)+'s"><span class="snum">'+(i+1)+'</span>'+renderSVG(o.shape,o.color.hex)+'</div>';
+    }).join('')+'</div>';
+  bindShapeOpts();
+  highlightShape(0);
+  speak('Cual es diferente'+pn+'?');
+}
+
+// === SHAPE CARD BINDING ===
+function bindShapeOpts(){
+  document.querySelectorAll('.shape-card').forEach(function(card){
+    card.onclick=function(){var idx=parseInt(card.dataset.idx);highlightShape(idx);checkShapeAnswer(card.dataset.val,idx)};
+  });
+}
+
+function highlightShape(i){
+  var cards=document.querySelectorAll('.shape-card');
+  if(!cards.length)return;
+  focusIdx=((i%cards.length)+cards.length)%cards.length;
+  cards.forEach(function(c,j){c.classList.toggle('selected',j===focusIdx)});
+}
+
+function checkShapeAnswer(val,idx){
+  if(locked)return;
+  var card=document.querySelectorAll('.shape-card')[idx];
+  if(!card)return;
+  if(val===currentRound.answer){
+    locked=true;
+    card.classList.add('correct');
+    sndCorrect();stars++;streak++;
+    document.getElementById('starCount').textContent='\u2B50 '+stars;
+    var pn=player?(' '+player+'!'):'!';
+    var msgs=['Muy bien'+pn,'Excelente'+pn,'Bravo'+pn,'Genial'+pn,'Perfecto'+pn];
+    showFeedback(MSGS_OK[Math.floor(Math.random()*MSGS_OK.length)],false);
+    stopSpeech();speak(msgs[Math.floor(Math.random()*msgs.length)]);
+    spawnStars(card);
+    if(streak%5===0)spawnConf();
+    setTimeout(nextRound,3000);
+  } else {
+    card.classList.add('wrong');
+    sndWrong();streak=0;
+    var pn2=player?(' '+player):'';
+    showFeedback(MSGS_RETRY[Math.floor(Math.random()*MSGS_RETRY.length)],true);
+    stopSpeech();speak(SPEECH_RETRY[Math.floor(Math.random()*SPEECH_RETRY.length)]+pn2);
+    setTimeout(function(){
+      card.classList.remove('wrong');
+      document.querySelectorAll('.shape-card').forEach(function(c){
+        if(c.dataset.val===currentRound.answer)c.classList.add('hint');
+      });
+      var hint;
+      if(currentRound.type==='color')hint='Es la '+currentRound.targetName;
+      else if(currentRound.type==='different')hint='Esa es la diferente';
+      else hint='Es '+(currentRound.fem?'la':'el')+' '+currentRound.targetName;
+      setTimeout(function(){stopSpeech();speak(hint)},800);
+    },500);
+  }
+}
+
+// === NUMBER OPTION BINDING (count sides) ===
+function bindNumberOpts(){
+  document.querySelectorAll('.opt-btn').forEach(function(btn){
+    btn.onclick=function(){var idx=parseInt(btn.dataset.idx);highlightOpt(idx);checkNumberAnswer(btn.dataset.val,idx)};
+  });
+}
+
+function highlightOpt(i){
+  var btns=document.querySelectorAll('.opt-btn');
+  if(!btns.length)return;
+  focusIdx=((i%btns.length)+btns.length)%btns.length;
+  btns.forEach(function(b,j){b.classList.toggle('selected',j===focusIdx)});
+}
+
+function checkNumberAnswer(val,idx){
+  if(locked)return;
+  var btn=document.querySelectorAll('.opt-btn')[idx];
+  if(!btn)return;
+  if(val===currentRound.answer){
+    locked=true;
+    btn.classList.add('correct');
+    sndCorrect();stars++;streak++;
+    document.getElementById('starCount').textContent='\u2B50 '+stars;
+    var pn=player?(' '+player+'!'):'!';
+    var msgs=['Muy bien'+pn,'Excelente'+pn,'Bravo'+pn,'Genial'+pn,'Perfecto'+pn];
+    showFeedback(MSGS_OK[Math.floor(Math.random()*MSGS_OK.length)],false);
+    stopSpeech();speak(msgs[Math.floor(Math.random()*msgs.length)]);
+    spawnStars(btn);
+    if(streak%5===0)spawnConf();
+    setTimeout(nextRound,3000);
+  } else {
+    btn.classList.add('wrong');
+    sndWrong();streak=0;
+    var pn2=player?(' '+player):'';
+    showFeedback(MSGS_RETRY[Math.floor(Math.random()*MSGS_RETRY.length)],true);
+    stopSpeech();speak(SPEECH_RETRY[Math.floor(Math.random()*SPEECH_RETRY.length)]+pn2);
+    setTimeout(function(){
+      btn.classList.remove('wrong');
+      document.querySelectorAll('.opt-btn').forEach(function(b){
+        if(b.dataset.val===currentRound.answer)b.classList.add('hint');
+      });
+      setTimeout(function(){stopSpeech();speak('Son '+currentRound.answer)},800);
+    },500);
+  }
+}
+
+// === KEYBOARD HANDLER ===
+window.addEventListener('keydown',function(e){
+  // Level screen
+  if(!document.getElementById('level-screen').classList.contains('hidden')){
+    if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();highlightLevel(levelFocus+1)}
+    else if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();highlightLevel(levelFocus-1)}
+    else if(e.key==='Enter'){e.preventDefault();sndClick();selectLevel(levelFocus)}
+    else if(e.key>='1'&&e.key<='5'){e.preventDefault();sndClick();selectLevel(parseInt(e.key)-1)}
+    else if(e.key==='Escape'){e.preventDefault();window.location.href='juegos.html'}
+    return;
+  }
+  // Game screen
+  if(!document.getElementById('game-screen').classList.contains('hidden')){
+    if(e.key==='Escape'){e.preventDefault();sndClick();stopSpeech();show('level-screen');buildLevelGrid();return}
+    if(locked)return;
+    var cards=document.querySelectorAll('.shape-card');
+    var btns=document.querySelectorAll('.opt-btn');
+    if(cards.length){
+      if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();highlightShape(focusIdx+1)}
+      else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();highlightShape(focusIdx-1)}
+      else if(e.key==='Enter'){e.preventDefault();var c=cards[focusIdx];if(c)checkShapeAnswer(c.dataset.val,focusIdx)}
+      else if(e.key>='1'&&e.key<='9'){var ci=parseInt(e.key)-1;if(ci<cards.length){e.preventDefault();highlightShape(ci);checkShapeAnswer(cards[ci].dataset.val,ci)}}
+    } else if(btns.length){
+      if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();highlightOpt(focusIdx+1)}
+      else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();highlightOpt(focusIdx-1)}
+      else if(e.key==='Enter'){e.preventDefault();var b=btns[focusIdx];if(b)checkNumberAnswer(b.dataset.val,focusIdx)}
+      else if(e.key>='1'&&e.key<='9'){var bi=parseInt(e.key)-1;if(bi<btns.length){e.preventDefault();highlightOpt(bi);checkNumberAnswer(btns[bi].dataset.val,bi)}}
+    }
+  }
+});
+
+// === FEEDBACK ===
+var fbTimer=null;
+function showFeedback(msg,isRetry){
+  var fb=document.getElementById('feedback');
+  var txt=document.getElementById('fbText');
+  if(fbTimer)clearTimeout(fbTimer);
+  txt.textContent=msg;
+  txt.className='fb-text'+(isRetry?' retry':'');
+  fb.classList.remove('hidden');
+  txt.style.animation='none';void txt.offsetWidth;txt.style.animation='fbPop .6s cubic-bezier(.34,1.56,.64,1) forwards';
+  fbTimer=setTimeout(function(){fb.classList.add('hidden');fbTimer=null},isRetry?2500:900);
+}
+
+// === PARTICLES ===
+function spawnStars(el){
+  var rect=el.getBoundingClientRect();
+  for(var i=0;i<5;i++){
+    var s=document.createElement('div');s.className='star-particle';
+    s.textContent='\u2B50';
+    s.style.left=(rect.left+rect.width/2-16+Math.random()*40-20)+'px';
+    s.style.top=(rect.top-10)+'px';
+    s.style.animationDelay=(i*.08)+'s';
+    document.body.appendChild(s);setTimeout(function(el){el.remove()},1200,s);
+  }
+}
+
+function spawnConf(){
+  sndCeleb();
+  var cols=['#FF6B9D','#FFD54F','#4FC3F7','#66BB6A','#CE93D8','#FF8A65','#EF5350'];
+  for(var i=0;i<40;i++){
+    var p=document.createElement('div');p.className='confetti';
+    p.style.cssText='left:'+Math.random()*100+'vw;top:-20px;width:'+(8+Math.random()*10)+'px;height:'+(8+Math.random()*10)+'px;background:'+cols[i%7]+';border-radius:'+(Math.random()>.5?'50%':'2px')+';animation-duration:'+(2+Math.random()*3)+'s;animation-delay:'+Math.random()*1.5+'s';
+    document.body.appendChild(p);setTimeout(function(el){el.remove()},6000,p);
+  }
+}
+
+function shuffle(arr){var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=a[i];a[i]=a[j];a[j]=tmp}return a}
+</script>
+</body>
+</html>
